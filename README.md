@@ -27,7 +27,6 @@ No real-time motion. This is a supervisory bridge, not a motion driver. Real-tim
 ## Related projects
 
 - [abb-rws-client](https://github.com/ichbinmeraj/abb-rws-client): TypeScript RWS client tested on RobotWare 6, 7 and 8
-- [abb-rws-ros2](https://github.com/ichbinmeraj/abb-rws-ros2): ROS 2 supervisory bridge
 - [abb-rws-conformance](https://github.com/ichbinmeraj/abb-rws-conformance): conformance suite and compatibility matrix
 - [abb-rws-mcp](https://github.com/ichbinmeraj/abb-rws-mcp): MCP server for AI agents
 - [abb-rws-vscode](https://github.com/ichbinmeraj/abb-rws-vscode): RAPID Live, VS Code extension for ABB controllers

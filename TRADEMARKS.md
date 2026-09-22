@@ -2,7 +2,7 @@
 
 The Apache-2.0 licence covers the code in this repository. It does not grant rights to the project names (see Section 6 of the licence).
 
-The names `abb-rws-client`, `abb-rws-ros2`, `abb-rws-conformance`, `abb-rws-mcp` and "RAPID Live" identify projects maintained by Meraj Safari.
+The names `abb-rws-client`, `abb-rws-ros2`, `abb-rws-conformance`, `abb-rws-mcp`, `abb-rws-vscode`, `abb-rws-panel` and "RAPID Live" identify projects maintained by Meraj Safari.
 
 **You may** refer to the project by name to describe compatibility or origin, for example "based on abb-rws-ros2".
 
