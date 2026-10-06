@@ -1,0 +1,95 @@
+# Copyright 2026 Meraj Safari
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# The bridge under Docker Desktop (Windows or macOS), next to an
+# abb-rws-daemon that runs on the host itself.
+#
+#   1. Start the daemon first, with --allowed-hosts host.docker.internal.
+#      It creates its token file on its first start, and it accepts the name
+#      a container uses for the host only when that option names it. A
+#      daemon that knows the option logs a warning at start that names the
+#      extra hosts; an older daemon ignores the option without a word and
+#      keeps refusing the name (the bridge then reports host-refused).
+#   2. Set ABB_RWS_DAEMON_TOKEN_FILE to the path of the daemon's token file,
+#      and check that the file is there (see the note at the mount below).
+#   3. docker compose -f docker/compose.yaml up --build
+#
+# Variables:
+#   ABB_RWS_DAEMON_TOKEN_FILE      required; the daemon's token file on the host
+#   ABB_RWS_DAEMON_URL             default http://host.docker.internal:7810
+#   ROS_DOMAIN_ID                  default 0
+#   ROS_AUTOMATIC_DISCOVERY_RANGE  default LOCALHOST (see the note below)
+#
+# The container publishes no port, gets no capability and does not share the
+# host's network. Its file system is read-only; /tmp is kept in memory.
+#
+# On Docker Engine on Linux add the override compose.linux-host.yaml.
+
+# The project name; without it Compose would take the folder's name, "docker".
+name: abb-rws-ros2
+
+services:
+  bridge:
+    image: abb-rws-ros2:jazzy
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    command:
+      - ros2
+      - launch
+      - abb_rws_ros2
+      - bridge.launch.py
+      - "daemon_url:=${ABB_RWS_DAEMON_URL:-http://host.docker.internal:7810}"
+      - "token_file:=/run/secrets/abb_rws_daemon_token"
+    environment:
+      ROS_DOMAIN_ID: "${ROS_DOMAIN_ID:-0}"
+      # Who can read the topics: the ROS graph has no access control. Every
+      # ROS 2 node that can discover the bridge reads its topics without the
+      # daemon's token, and controller_snapshot carries the controller's
+      # identity. LOCALHOST keeps the topics inside this container's own
+      # network namespace. SUBNET shows them to every ROS 2 node that can
+      # reach the container's network. The README says more.
+      ROS_AUTOMATIC_DISCOVERY_RANGE: "${ROS_AUTOMATIC_DISCOVERY_RANGE:-LOCALHOST}"
+    # A reader in a second container must share this container's network
+    # namespace AND its IPC namespace: with the default RMW (Fast DDS) two
+    # nodes that find each other on one host hand messages over through shared
+    # memory, and a reader that shares the network alone lists the topics and
+    # receives nothing (measured). "shareable" lets a second container join
+    # with --ipc container:<this container>; see the README.
+    ipc: shareable
+    volumes:
+      # The daemon's token: the single file, read-only. Mount the file, never
+      # its folder: by default that folder also holds the daemon's recordings.
+      #
+      # The file must exist before the container is created. The setting
+      # create_host_path: false tells Docker not to make a missing path, but
+      # Docker Desktop on Windows was seen to make an empty directory at the
+      # path all the same. If that happened, remove the directory again: the
+      # daemon writes its token file at this path.
+      #
+      # A single-file mount keeps showing the old file when the token file is
+      # replaced, so restart the bridge after that.
+      - type: bind
+        source: "${ABB_RWS_DAEMON_TOKEN_FILE:?set this to the daemon's token file}"
+        target: /run/secrets/abb_rws_daemon_token
+        read_only: true
+        bind:
+          create_host_path: false
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - "no-new-privileges:true"

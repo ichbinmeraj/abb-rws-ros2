@@ -1,0 +1,11 @@
+{
+  "source": "abb-rws-daemon, schema/v0.schema.json",
+  "schemaId": "urn:abb-rws-daemon:schema:v0",
+  "schemaVersion": "0.12",
+  "schemaSha256": "5735a10d510f17acc128bad725e0efc60abef068fc25021251b811e4eda2ed78",
+  "definitionsSha256": "fdff40e6e13d87a015b7c9a9b34f7dddae062628cef70baaed3ec6037cdaf7f0",
+  "messages": 25,
+  "renames": {
+    "IdentityGroup.virtual": "is_virtual"
+  }
+}

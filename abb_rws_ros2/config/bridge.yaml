@@ -1,0 +1,138 @@
+# Copyright 2026 Meraj Safari
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Parameters of the bridge node (package abb_rws_bridge, executable bridge).
+#
+# Every parameter is listed with its default, so this file changes nothing
+# until a value is edited. The node reads its parameters once, when it starts.
+#
+# The launch file takes this file unless another one is named:
+#   ros2 launch abb_rws_ros2 bridge.launch.py params_file:=<path>
+# Its arguments daemon_url, token_file, controller and allow_replay win over
+# what is written here.
+#
+# The bridge is read-only: it republishes what abb-rws-daemon reports and
+# sends nothing to a controller.
+#
+# How to write a value: text in double quotes, a number with a decimal point
+# (2.0, not 2), true or false, a list as ["a", "b"] and an empty list as [].
+
+/**:
+  ros__parameters:
+
+    # Where abb-rws-daemon listens: http://<host>:<port> and nothing else (no
+    # https, no user info, no path, no query). The host must be 127.0.0.1,
+    # localhost, ::1, host.docker.internal or host.containers.internal unless
+    # allow_remote_daemon is true.
+    daemon_url: "http://127.0.0.1:7810"
+
+    # Accept any host in daemon_url. The daemon listens on 127.0.0.1 only, so
+    # another host is a forwarder in front of it, and the access token then
+    # travels unencrypted to that host.
+    allow_remote_daemon: false
+
+    # File that holds the access token of the daemon. Empty: the file named by
+    # the environment variable ABB_RWS_DAEMON_TOKEN_FILE, else
+    # abb-rws-daemon/token under $XDG_CONFIG_HOME, else under ~/.config.
+    # Only the path is written here, never the token itself.
+    token_file: ""
+
+    # Daemon controller ids to bridge, for example ["cell-1", "cell-2"].
+    # Empty: every controller the daemon serves.
+    controllers: []
+
+    # The topics of this controller sit directly in the namespace of the node
+    # (joint_states, controller_snapshot, io/<signal>). Every other controller
+    # gets a namespace of its own, made from its id. Empty: no controller is
+    # the primary one.
+    primary_controller: ""
+
+    # Joint names in joint_states. Placeholders: {controller} (the id of the
+    # controller as it is written in topic names, cell_1 for cell-1), {unit}
+    # (the mechanical unit, ROB_1), {joint} (J1 to J6, E1 to E6) and {axis}
+    # (the number in the joint name). The default gives ROB_1_J1.
+    joint_name_format: "{unit}_{joint}"
+
+    # Names for single joints, for example the names a URDF uses. Entries
+    # "<controller id>/<unit>/<joint>=<name>", such as
+    # "cell-1/ROB_1/J1=joint_1". They win over joint_name_format.
+    joint_name_overrides: []
+
+    # header.frame_id of joint_states.
+    joint_states_frame_id: ""
+
+    # Which clock stamps joint_states and controller_snapshot: "daemon" (the
+    # times the daemon reports), "bridge" (the clock of this machine when the
+    # value arrived) or "auto" (daemon when daemon_url names 127.0.0.1,
+    # localhost or ::1, otherwise bridge).
+    stamp_source: "auto"
+
+    # Hold a motion watch on every bridged controller, which makes the daemon
+    # sample its joints. false: joints appear only while another consumer of
+    # the daemon watches them.
+    watch_motion: true
+
+    # I/O signals to watch and publish under io/. Entries
+    # "<controller id>:<signal>", the signal as the daemon names it, such as
+    # "cell-1:do_gripper" or "cell-1:network/device/signal". The daemon
+    # accepts at most 16 for one controller.
+    io_signals: []
+
+    # A daemon in replay mode serves a recording, not a robot. false: nothing
+    # is published from it. true: it is published under replay/ names only,
+    # never on the live topic names.
+    allow_replay: false
+
+    # How often the bridge asks the daemon for all controllers, in Hz, 0.2 to
+    # 10. This confirms values that did not change and shows that the daemon
+    # still answers.
+    refresh_hz: 2.0
+
+    # Keep-alive rate of controller_snapshot and of the I/O topics while their
+    # data is current, in Hz, 0 to 10. 0.0: on change only.
+    republish_hz: 1.0
+
+    # A value not confirmed for this many seconds is stale, and a daemon that
+    # has not answered for as long is treated as gone. 0.5 to 60, and at least
+    # 2 / refresh_hz.
+    stale_after_s: 2.0
+
+    # Period of /diagnostics in seconds, 0.2 to 10.
+    diagnostics_period_s: 1.0
+
+    # Shortest wait before the bridge connects to the daemon again, in
+    # seconds, 0.1 to 60. Must not exceed reconnect_max_s.
+    reconnect_min_s: 0.5
+
+    # Longest wait before the bridge connects to the daemon again, in seconds,
+    # 1 to 300.
+    reconnect_max_s: 15.0
+
+    # Timeout of every request to the daemon and of opening the stream, in
+    # seconds, 0.5 to 30.
+    http_timeout_s: 5.0
+
+    # Quality of service of one data topic. Every data topic is reliable,
+    # volatile and keeps the last 10 messages; depth, history and reliability
+    # can be changed here, under the full name of the topic (namespace and
+    # controller included). /diagnostics cannot be changed. The example is
+    # joint_states of the primary controller without a namespace; remove the
+    # leading "# " of its lines to use it.
+    #
+    # qos_overrides:
+    #   /joint_states:
+    #     publisher:
+    #       depth: 10
+    #       history: keep_last
+    #       reliability: reliable

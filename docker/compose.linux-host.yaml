@@ -1,0 +1,57 @@
+# Copyright 2026 Meraj Safari
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Override for Docker Engine on Linux, with the daemon on the same host.
+# Use it on top of compose.yaml:
+#
+#   docker compose -f docker/compose.yaml -f docker/compose.linux-host.yaml up --build
+#
+# The container shares the host's network, so the bridge reaches the daemon at
+# 127.0.0.1 and the daemon needs no extra option. Everything else in
+# compose.yaml stays as it is, the read-only token mount included.
+#
+# ROS_AUTOMATIC_DISCOVERY_RANGE still defaults to LOCALHOST. With the host's
+# network that means: the ROS 2 nodes on this host. SUBNET shows the topics to
+# every ROS 2 node on the host's networks.
+#
+# The container also shares the host's IPC namespace (ipc: host). With the
+# default RMW (Fast DDS) two nodes that find each other on one host hand
+# messages over through shared memory; a container with its own IPC namespace
+# shares none with the host's nodes, which would list the topics and receive
+# nothing. The same was measured under Docker Desktop with a second container
+# that shared the bridge container's network namespace alone, and messages
+# arrived once it shared the IPC namespace too. Readers on the host run under
+# the same account as the bridge (ABB_RWS_BRIDGE_USER). This file is written
+# and was not run on a Linux host.
+#
+# The daemon's token file is readable by its owner only. The container must
+# run as that account: set ABB_RWS_BRIDGE_USER to "<uid>:<gid>" (id -u and
+# id -g of the account) when it is not 1000:1000. Never loosen the file's mode.
+#
+# Variables, besides those of compose.yaml:
+#   ABB_RWS_DAEMON_URL   default here http://127.0.0.1:7810
+#   ABB_RWS_BRIDGE_USER  default 1000:1000
+
+services:
+  bridge:
+    network_mode: host
+    ipc: host
+    user: "${ABB_RWS_BRIDGE_USER:-1000:1000}"
+    command:
+      - ros2
+      - launch
+      - abb_rws_ros2
+      - bridge.launch.py
+      - "daemon_url:=${ABB_RWS_DAEMON_URL:-http://127.0.0.1:7810}"
+      - "token_file:=/run/secrets/abb_rws_daemon_token"

@@ -1,0 +1,1226 @@
+{
+  "schemaId": "urn:abb-rws-daemon:schema:v0",
+  "schemaVersion": "0.12",
+  "definitionsSha256": "fdff40e6e13d87a015b7c9a9b34f7dddae062628cef70baaed3ec6037cdaf7f0",
+  "package": "abb_rws_ros2_msgs",
+  "renames": {
+    "IdentityGroup.virtual": "is_virtual"
+  },
+  "warnings": [
+    {
+      "message": "LinkGroup",
+      "field": "port",
+      "why": "IDL keyword"
+    },
+    {
+      "message": "RapidPointer",
+      "field": "module",
+      "why": "IDL keyword"
+    },
+    {
+      "message": "MotionJoint",
+      "field": "min",
+      "why": "macro name in some C++ headers"
+    },
+    {
+      "message": "MotionJoint",
+      "field": "max",
+      "why": "macro name in some C++ headers"
+    }
+  ],
+  "messages": {
+    "ControllerSnapshot": {
+      "header": true,
+      "fields": [
+        {
+          "json": "id",
+          "ros": "id",
+          "kind": "string",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "name",
+          "ros": "name",
+          "kind": "string",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "identity",
+          "ros": "identity",
+          "kind": "msg",
+          "required": true,
+          "nullable": true,
+          "msg": "IdentityGroup",
+          "optional": true
+        },
+        {
+          "json": "link",
+          "ros": "link",
+          "kind": "msg",
+          "required": true,
+          "nullable": false,
+          "msg": "LinkGroup"
+        },
+        {
+          "json": "panel",
+          "ros": "panel",
+          "kind": "msg",
+          "required": true,
+          "nullable": false,
+          "msg": "PanelGroup"
+        },
+        {
+          "json": "rapid",
+          "ros": "rapid",
+          "kind": "msg",
+          "required": true,
+          "nullable": false,
+          "msg": "RapidGroup"
+        },
+        {
+          "json": "motion",
+          "ros": "motion",
+          "kind": "msg",
+          "required": true,
+          "nullable": false,
+          "msg": "MotionGroup"
+        },
+        {
+          "json": "io",
+          "ros": "io",
+          "kind": "msg",
+          "required": true,
+          "nullable": false,
+          "msg": "IoGroup"
+        },
+        {
+          "json": "events",
+          "ros": "events",
+          "kind": "msg",
+          "required": true,
+          "nullable": false,
+          "msg": "EventsGroup"
+        }
+      ]
+    },
+    "IdentityGroup": {
+      "fields": [
+        {
+          "json": "controllerName",
+          "ros": "controller_name",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "controller_name_known"
+        },
+        {
+          "json": "controllerId",
+          "ros": "controller_id",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "controller_id_known"
+        },
+        {
+          "json": "controllerType",
+          "ros": "controller_type",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "controller_type_known"
+        },
+        {
+          "json": "virtual",
+          "ros": "is_virtual",
+          "kind": "bool",
+          "required": true,
+          "nullable": true,
+          "tristate": true
+        },
+        {
+          "json": "mac",
+          "ros": "mac",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "mac_known"
+        },
+        {
+          "json": "systemName",
+          "ros": "system_name",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "system_name_known"
+        },
+        {
+          "json": "sysId",
+          "ros": "sys_id",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "sys_id_known"
+        },
+        {
+          "json": "startTime",
+          "ros": "start_time",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "start_time_known"
+        },
+        {
+          "json": "robotWare",
+          "ros": "robot_ware",
+          "kind": "msg",
+          "required": true,
+          "nullable": false,
+          "msg": "RobotWareVersion"
+        },
+        {
+          "json": "options",
+          "ros": "options",
+          "kind": "array",
+          "required": true,
+          "nullable": false,
+          "items": {
+            "kind": "string"
+          }
+        },
+        {
+          "json": "asOf",
+          "ros": "as_of",
+          "kind": "time",
+          "required": true,
+          "nullable": false
+        }
+      ]
+    },
+    "RobotWareVersion": {
+      "fields": [
+        {
+          "json": "raw",
+          "ros": "raw",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "raw_known"
+        },
+        {
+          "json": "major",
+          "ros": "major",
+          "kind": "int",
+          "required": true,
+          "nullable": true,
+          "known": "major_known"
+        },
+        {
+          "json": "minor",
+          "ros": "minor",
+          "kind": "int",
+          "required": true,
+          "nullable": true,
+          "known": "minor_known"
+        },
+        {
+          "json": "generation",
+          "ros": "generation",
+          "kind": "enum",
+          "required": true,
+          "nullable": true,
+          "values": [
+            "rws1",
+            "rws2"
+          ]
+        }
+      ]
+    },
+    "LinkGroup": {
+      "fields": [
+        {
+          "json": "connected",
+          "ros": "connected",
+          "kind": "bool",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "quality",
+          "ros": "quality",
+          "kind": "enum",
+          "required": true,
+          "nullable": false,
+          "values": [
+            "live",
+            "polling",
+            "reconnecting",
+            "stale",
+            "disconnected"
+          ]
+        },
+        {
+          "json": "qualityReason",
+          "ros": "quality_reason",
+          "kind": "string",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "since",
+          "ros": "since",
+          "kind": "time",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "host",
+          "ros": "host",
+          "kind": "string",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "port",
+          "ros": "port",
+          "kind": "int",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "useHttps",
+          "ros": "use_https",
+          "kind": "bool",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "subscriptions",
+          "ros": "subscriptions",
+          "kind": "msg",
+          "required": true,
+          "nullable": false,
+          "msg": "LinkSubscriptions"
+        },
+        {
+          "json": "identityCheck",
+          "ros": "identity_check",
+          "kind": "msg",
+          "required": true,
+          "nullable": false,
+          "msg": "IdentityCheck"
+        },
+        {
+          "json": "reconnect",
+          "ros": "reconnect",
+          "kind": "msg",
+          "required": true,
+          "nullable": true,
+          "msg": "ReconnectInfo",
+          "optional": true
+        }
+      ]
+    },
+    "LinkSubscriptions": {
+      "fields": [
+        {
+          "json": "active",
+          "ros": "active",
+          "kind": "bool",
+          "required": true,
+          "nullable": false
+        }
+      ]
+    },
+    "IdentityCheck": {
+      "fields": [
+        {
+          "json": "status",
+          "ros": "status",
+          "kind": "enum",
+          "required": true,
+          "nullable": false,
+          "values": [
+            "confirmed",
+            "unverified",
+            "mismatch"
+          ]
+        },
+        {
+          "json": "expected",
+          "ros": "expected",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "expected_known"
+        },
+        {
+          "json": "actual",
+          "ros": "actual",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "actual_known"
+        }
+      ]
+    },
+    "ReconnectInfo": {
+      "fields": [
+        {
+          "json": "failures",
+          "ros": "failures",
+          "kind": "int",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "nextAttemptAt",
+          "ros": "next_attempt_at",
+          "kind": "time",
+          "required": true,
+          "nullable": false
+        }
+      ]
+    },
+    "PanelGroup": {
+      "fields": [
+        {
+          "json": "ctrlState",
+          "ros": "ctrl_state",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "ctrl_state_known"
+        },
+        {
+          "json": "opMode",
+          "ros": "op_mode",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "op_mode_known"
+        },
+        {
+          "json": "speedRatio",
+          "ros": "speed_ratio",
+          "kind": "float",
+          "required": true,
+          "nullable": true
+        },
+        {
+          "json": "collisionDetection",
+          "ros": "collision_detection",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "collision_detection_known"
+        },
+        {
+          "json": "asOf",
+          "ros": "as_of",
+          "kind": "time",
+          "required": true,
+          "nullable": true,
+          "known": "as_of_known"
+        }
+      ]
+    },
+    "RapidGroup": {
+      "fields": [
+        {
+          "json": "execState",
+          "ros": "exec_state",
+          "kind": "enum",
+          "required": true,
+          "nullable": true,
+          "values": [
+            "running",
+            "stopped"
+          ]
+        },
+        {
+          "json": "cycle",
+          "ros": "cycle",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "cycle_known"
+        },
+        {
+          "json": "tasks",
+          "ros": "tasks",
+          "kind": "array",
+          "required": true,
+          "nullable": false,
+          "items": {
+            "kind": "msg",
+            "msg": "RapidTaskInfo"
+          }
+        },
+        {
+          "json": "asOf",
+          "ros": "as_of",
+          "kind": "time",
+          "required": true,
+          "nullable": true,
+          "known": "as_of_known"
+        }
+      ]
+    },
+    "RapidTaskInfo": {
+      "fields": [
+        {
+          "json": "name",
+          "ros": "name",
+          "kind": "string",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "type",
+          "ros": "type",
+          "kind": "string",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "taskState",
+          "ros": "task_state",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "task_state_known"
+        },
+        {
+          "json": "execState",
+          "ros": "exec_state",
+          "kind": "enum",
+          "required": true,
+          "nullable": true,
+          "values": [
+            "running",
+            "stopped"
+          ]
+        },
+        {
+          "json": "active",
+          "ros": "active",
+          "kind": "bool",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "motion",
+          "ros": "motion",
+          "kind": "bool",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "modules",
+          "ros": "modules",
+          "kind": "array",
+          "required": true,
+          "nullable": false,
+          "items": {
+            "kind": "string"
+          }
+        },
+        {
+          "json": "pp",
+          "ros": "pp",
+          "kind": "msg",
+          "required": true,
+          "nullable": true,
+          "msg": "RapidPointer",
+          "optional": true
+        },
+        {
+          "json": "mp",
+          "ros": "mp",
+          "kind": "msg",
+          "required": true,
+          "nullable": true,
+          "msg": "RapidPointer",
+          "optional": true
+        }
+      ]
+    },
+    "RapidPointer": {
+      "fields": [
+        {
+          "json": "module",
+          "ros": "module",
+          "kind": "string",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "routine",
+          "ros": "routine",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "routine_known"
+        },
+        {
+          "json": "line",
+          "ros": "line",
+          "kind": "int",
+          "required": true,
+          "nullable": true,
+          "known": "line_known"
+        }
+      ]
+    },
+    "MotionGroup": {
+      "fields": [
+        {
+          "json": "watching",
+          "ros": "watching",
+          "kind": "bool",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "units",
+          "ros": "units",
+          "kind": "array",
+          "required": true,
+          "nullable": false,
+          "items": {
+            "kind": "msg",
+            "msg": "MotionUnitInfo"
+          }
+        },
+        {
+          "json": "rate",
+          "ros": "rate",
+          "kind": "msg",
+          "required": true,
+          "nullable": false,
+          "msg": "MotionRate"
+        },
+        {
+          "json": "asOf",
+          "ros": "as_of",
+          "kind": "time",
+          "required": true,
+          "nullable": true,
+          "known": "as_of_known"
+        }
+      ]
+    },
+    "MotionUnitInfo": {
+      "fields": [
+        {
+          "json": "name",
+          "ros": "name",
+          "kind": "string",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "kind",
+          "ros": "kind",
+          "kind": "enum",
+          "required": true,
+          "nullable": true,
+          "values": [
+            "robot",
+            "positioner",
+            "external"
+          ]
+        },
+        {
+          "json": "typeRaw",
+          "ros": "type_raw",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "type_raw_known"
+        },
+        {
+          "json": "task",
+          "ros": "task",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "task_known"
+        },
+        {
+          "json": "joints",
+          "ros": "joints",
+          "kind": "array",
+          "required": true,
+          "nullable": false,
+          "items": {
+            "kind": "msg",
+            "msg": "MotionJoint"
+          }
+        },
+        {
+          "json": "pose",
+          "ros": "pose",
+          "kind": "msg",
+          "required": true,
+          "nullable": true,
+          "msg": "MotionPose",
+          "optional": true
+        },
+        {
+          "json": "error",
+          "ros": "error",
+          "kind": "msg",
+          "required": true,
+          "nullable": true,
+          "msg": "GroupError",
+          "optional": true
+        }
+      ]
+    },
+    "MotionJoint": {
+      "fields": [
+        {
+          "json": "name",
+          "ros": "name",
+          "kind": "string",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "value",
+          "ros": "value",
+          "kind": "float",
+          "required": true,
+          "nullable": true
+        },
+        {
+          "json": "unit",
+          "ros": "unit",
+          "kind": "enum",
+          "required": true,
+          "nullable": true,
+          "values": [
+            "deg",
+            "mm"
+          ]
+        },
+        {
+          "json": "min",
+          "ros": "min",
+          "kind": "float",
+          "required": true,
+          "nullable": true
+        },
+        {
+          "json": "max",
+          "ros": "max",
+          "kind": "float",
+          "required": true,
+          "nullable": true
+        }
+      ]
+    },
+    "MotionPose": {
+      "fields": [
+        {
+          "json": "x",
+          "ros": "x",
+          "kind": "float",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "y",
+          "ros": "y",
+          "kind": "float",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "z",
+          "ros": "z",
+          "kind": "float",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "q",
+          "ros": "q",
+          "kind": "tuple",
+          "required": true,
+          "nullable": false,
+          "size": 4
+        },
+        {
+          "json": "tool",
+          "ros": "tool",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "tool_known"
+        },
+        {
+          "json": "wobj",
+          "ros": "wobj",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "wobj_known"
+        },
+        {
+          "json": "coord",
+          "ros": "coord",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "coord_known"
+        }
+      ]
+    },
+    "GroupError": {
+      "fields": [
+        {
+          "json": "code",
+          "ros": "code",
+          "kind": "string",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "message",
+          "ros": "message",
+          "kind": "string",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "controller",
+          "ros": "controller",
+          "kind": "msg",
+          "required": false,
+          "nullable": false,
+          "msg": "ControllerAnswer",
+          "optional": true
+        },
+        {
+          "json": "refusal",
+          "ros": "refusal",
+          "kind": "json",
+          "required": false,
+          "nullable": false
+        }
+      ]
+    },
+    "ControllerAnswer": {
+      "fields": [
+        {
+          "json": "httpStatus",
+          "ros": "http_status",
+          "kind": "int",
+          "required": true,
+          "nullable": true,
+          "known": "http_status_known"
+        },
+        {
+          "json": "code",
+          "ros": "code",
+          "kind": "int",
+          "required": true,
+          "nullable": true,
+          "known": "code_known"
+        },
+        {
+          "json": "message",
+          "ros": "message",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "message_known"
+        }
+      ]
+    },
+    "MotionRate": {
+      "fields": [
+        {
+          "json": "targetHz",
+          "ros": "target_hz",
+          "kind": "float",
+          "required": true,
+          "nullable": true
+        },
+        {
+          "json": "achievedHz",
+          "ros": "achieved_hz",
+          "kind": "float",
+          "required": true,
+          "nullable": true
+        },
+        {
+          "json": "via",
+          "ros": "via",
+          "kind": "enum",
+          "required": true,
+          "nullable": true,
+          "values": [
+            "poll"
+          ]
+        }
+      ]
+    },
+    "IoGroup": {
+      "fields": [
+        {
+          "json": "watching",
+          "ros": "watching",
+          "kind": "bool",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "signals",
+          "ros": "signals",
+          "kind": "array",
+          "required": true,
+          "nullable": false,
+          "items": {
+            "kind": "msg",
+            "msg": "IoWatchedSignal"
+          },
+          "max": 24
+        },
+        {
+          "json": "asOf",
+          "ros": "as_of",
+          "kind": "time",
+          "required": true,
+          "nullable": true,
+          "known": "as_of_known"
+        }
+      ]
+    },
+    "IoWatchedSignal": {
+      "fields": [
+        {
+          "json": "name",
+          "ros": "name",
+          "kind": "string",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "type",
+          "ros": "type",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "type_known"
+        },
+        {
+          "json": "value",
+          "ros": "value",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "value_known"
+        },
+        {
+          "json": "via",
+          "ros": "via",
+          "kind": "enum",
+          "required": true,
+          "nullable": true,
+          "values": [
+            "subscription",
+            "poll"
+          ]
+        },
+        {
+          "json": "asOf",
+          "ros": "as_of",
+          "kind": "time",
+          "required": true,
+          "nullable": true,
+          "known": "as_of_known"
+        },
+        {
+          "json": "error",
+          "ros": "error",
+          "kind": "msg",
+          "required": true,
+          "nullable": true,
+          "msg": "GroupError",
+          "optional": true
+        }
+      ]
+    },
+    "EventsGroup": {
+      "fields": [
+        {
+          "json": "feed",
+          "ros": "feed",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "feed_known"
+        },
+        {
+          "json": "lastSeq",
+          "ros": "last_seq",
+          "kind": "int",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "recent",
+          "ros": "recent",
+          "kind": "array",
+          "required": true,
+          "nullable": false,
+          "items": {
+            "kind": "msg",
+            "msg": "ControllerEvent"
+          },
+          "max": 20
+        },
+        {
+          "json": "via",
+          "ros": "via",
+          "kind": "enum",
+          "required": true,
+          "nullable": true,
+          "values": [
+            "subscription",
+            "poll"
+          ]
+        },
+        {
+          "json": "clock",
+          "ros": "clock",
+          "kind": "msg",
+          "required": true,
+          "nullable": false,
+          "msg": "EventClock"
+        },
+        {
+          "json": "asOf",
+          "ros": "as_of",
+          "kind": "time",
+          "required": true,
+          "nullable": true,
+          "known": "as_of_known"
+        },
+        {
+          "json": "error",
+          "ros": "error",
+          "kind": "msg",
+          "required": true,
+          "nullable": true,
+          "msg": "GroupError",
+          "optional": true
+        }
+      ]
+    },
+    "ControllerEvent": {
+      "fields": [
+        {
+          "json": "seq",
+          "ros": "seq",
+          "kind": "int",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "seqnum",
+          "ros": "seqnum",
+          "kind": "int",
+          "required": true,
+          "nullable": true,
+          "known": "seqnum_known"
+        },
+        {
+          "json": "code",
+          "ros": "code",
+          "kind": "int",
+          "required": true,
+          "nullable": true,
+          "known": "code_known"
+        },
+        {
+          "json": "severity",
+          "ros": "severity",
+          "kind": "enum",
+          "required": true,
+          "nullable": true,
+          "values": [
+            "info",
+            "warning",
+            "error"
+          ]
+        },
+        {
+          "json": "title",
+          "ros": "title",
+          "kind": "string",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "titleFromCode",
+          "ros": "title_from_code",
+          "kind": "bool",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "description",
+          "ros": "description",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "description_known"
+        },
+        {
+          "json": "causes",
+          "ros": "causes",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "causes_known"
+        },
+        {
+          "json": "consequences",
+          "ros": "consequences",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "consequences_known"
+        },
+        {
+          "json": "actions",
+          "ros": "actions",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "actions_known"
+        },
+        {
+          "json": "args",
+          "ros": "args",
+          "kind": "array",
+          "required": true,
+          "nullable": false,
+          "items": {
+            "kind": "msg",
+            "msg": "EventArg"
+          }
+        },
+        {
+          "json": "source",
+          "ros": "source",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "source_known"
+        },
+        {
+          "json": "time",
+          "ros": "time",
+          "kind": "msg",
+          "required": true,
+          "nullable": false,
+          "msg": "EventTime"
+        },
+        {
+          "json": "receivedAt",
+          "ros": "received_at",
+          "kind": "time",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "backlog",
+          "ros": "backlog",
+          "kind": "bool",
+          "required": true,
+          "nullable": false
+        }
+      ]
+    },
+    "EventArg": {
+      "fields": [
+        {
+          "json": "type",
+          "ros": "type",
+          "kind": "string",
+          "required": true,
+          "nullable": false
+        },
+        {
+          "json": "value",
+          "ros": "value",
+          "kind": "string",
+          "required": true,
+          "nullable": false
+        }
+      ]
+    },
+    "EventTime": {
+      "fields": [
+        {
+          "json": "raw",
+          "ros": "raw",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "raw_known"
+        },
+        {
+          "json": "utc",
+          "ros": "utc",
+          "kind": "time",
+          "required": true,
+          "nullable": true,
+          "known": "utc_known"
+        },
+        {
+          "json": "corrected",
+          "ros": "corrected",
+          "kind": "bool",
+          "required": true,
+          "nullable": false
+        }
+      ]
+    },
+    "EventClock": {
+      "fields": [
+        {
+          "json": "offsetMs",
+          "ros": "offset_ms",
+          "kind": "int",
+          "required": true,
+          "nullable": true,
+          "known": "offset_ms_known"
+        },
+        {
+          "json": "measuredAt",
+          "ros": "measured_at",
+          "kind": "time",
+          "required": true,
+          "nullable": true,
+          "known": "measured_at_known"
+        },
+        {
+          "json": "problem",
+          "ros": "problem",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "problem_known"
+        }
+      ]
+    }
+  }
+}

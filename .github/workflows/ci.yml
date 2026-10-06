@@ -1,0 +1,121 @@
+# Copyright 2026 Meraj Safari
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - "phase-*"
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Build and test (${{ matrix.ros_distro }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    container:
+      image: ros:${{ matrix.ros_distro }}-ros-base
+    continue-on-error: ${{ matrix.continue_on_error }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Required.
+          - ros_distro: jazzy
+            continue_on_error: false
+          # May fail for the first runs. Set this to false as soon as it has
+          # been green once; from then on it is required.
+          - ros_distro: lyrical
+            continue_on_error: true
+          # May fail.
+          - ros_distro: rolling
+            continue_on_error: true
+    env:
+      ROS_DISTRO: ${{ matrix.ros_distro }}
+      ROS_AUTOMATIC_DISCOVERY_RANGE: LOCALHOST
+      PYTHONDONTWRITEBYTECODE: "1"
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          path: src/abb-rws-ros2
+          persist-credentials: false
+
+      - name: Line endings (every tracked file is LF in the index)
+        run: |
+          eol="$(git -c safe.directory='*' -C src/abb-rws-ros2 ls-files --eol)"
+          test -n "${eol}"
+          if printf '%s\n' "${eol}" | grep -E '^i/(crlf|mixed)'; then
+            echo "The files listed above are not LF in the index."
+            exit 1
+          fi
+
+      - name: Install the dependencies
+        run: |
+          apt-get update
+          rosdep update --rosdistro "${ROS_DISTRO}"
+          rosdep install --from-paths src --ignore-src -y --rosdistro "${ROS_DISTRO}"
+
+      - name: Check the package manifests
+        run: |
+          source "/opt/ros/${ROS_DISTRO}/setup.bash"
+          ament_xmllint \
+            src/abb-rws-ros2/abb_rws_ros2_msgs/package.xml \
+            src/abb-rws-ros2/abb_rws_bridge/package.xml \
+            src/abb-rws-ros2/abb_rws_ros2/package.xml
+
+      - name: Build
+        run: |
+          source "/opt/ros/${ROS_DISTRO}/setup.bash"
+          colcon build --executor sequential --event-handlers console_cohesion+
+
+      - name: Test
+        run: |
+          source "/opt/ros/${ROS_DISTRO}/setup.bash"
+          source install/setup.bash
+          colcon test --executor sequential --event-handlers console_direct+
+
+      # colcon test exits 0 when a test fails, and colcon test-result exits 0
+      # when it finds no result at all: fail on both.
+      - name: Test results
+        run: |
+          colcon test-result --verbose | tee /tmp/test-result.txt
+          grep -Eq 'Summary: [1-9][0-9]* tests, 0 errors, 0 failures' /tmp/test-result.txt
+
+  image:
+    name: Runtime image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Build the image (nothing is pushed)
+        run: docker build -f docker/Dockerfile -t abb-rws-ros2:ci .
+
+      - name: The three packages are installed in it
+        run: |
+          for package in abb_rws_ros2_msgs abb_rws_bridge abb_rws_ros2; do
+            docker run --rm --network none abb-rws-ros2:ci ros2 pkg prefix "${package}"
+          done

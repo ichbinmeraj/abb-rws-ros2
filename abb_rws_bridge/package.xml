@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>abb_rws_bridge</name>
+  <version>0.1.0</version>
+  <description>Supervisory bridge node that republishes what abb-rws-daemon reports about ABB robot controllers as ROS 2 topics. Read-only; not a motion driver.</description>
+  <maintainer email="merajsafari3@gmail.com">Meraj Safari</maintainer>
+  <license file="LICENSE">Apache-2.0</license>
+  <url type="repository">https://github.com/ichbinmeraj/abb-rws-ros2</url>
+  <author>Meraj Safari</author>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>rcl_interfaces</exec_depend>
+  <exec_depend>abb_rws_ros2_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>diagnostic_msgs</exec_depend>
+  <exec_depend>builtin_interfaces</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>python3-websocket</exec_depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+  <test_depend>python3-pytest-timeout</test_depend>
+  <test_depend>python3-jsonschema</test_depend>
+  <test_depend>domain_coordinator</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
