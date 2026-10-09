@@ -27,7 +27,7 @@ events. Frames alone are enough to replay it.
 
 ## Schema version
 
-Fixtures are made with snapshot schema **0.12**, the version vendored in
+Fixtures are made with snapshot schema **0.13**, the version vendored in
 `abb_rws_ros2_msgs/schema/v0.schema.json`. A fixture's header names the version it was
 made with, and the fixture tests accept only the vendored one. When the vendored schema
 moves on, the fixtures are recorded again; they are never edited by hand.
