@@ -931,7 +931,7 @@ def test_scenario_8_controller_removed_and_added_primary_and_tokens(bench):
     assert collector.statuses(f'{bench.node_name}: controller cell-2', after=gone) == []
     assert collector.wait_for('controller_snapshot', after=gone)
 
-    # Added: a delta with all seven groups for an id the bridge did not know.
+    # Added: a delta with every group for an id the bridge did not know.
     added = frames.controller('cell-3')
     fake.push(frames.delta_frame('cell-3', frames.groups_of(added), observed_at=fake.now()))
     assert collector.wait_for('cell_3/controller_snapshot')[0].id == 'cell-3'
@@ -1032,7 +1032,7 @@ def test_scenario_9_newer_schema_with_unknown_content_works_with_a_warning(bench
     controller['motion']['futureField'] = 'x'
     controller['panel']['newThing'] = {'list': [1, 2]}
     fake = bench.start_fake([controller])
-    fake.schema_version = '0.13'
+    fake.schema_version = frames.NEWER_SCHEMA_VERSION
     Advance(fake)
     collector = bench.collector
     collector.subscribe('joint_states', JointState)
@@ -1054,20 +1054,22 @@ def test_scenario_9_newer_schema_with_unknown_content_works_with_a_warning(bench
     collector.wait_for('joint_states', 2, after=mark)
 
     status = bench.daemon_status(lambda found: found.level == WARN, after=mark)
-    assert 'the daemon schema 0.13 is newer than the messages (0.12)' in status.message
+    newer, ours = frames.NEWER_SCHEMA_VERSION, frames.SCHEMA_VERSION
+    assert f'the daemon schema {newer} is newer than the messages ({ours})' in status.message
     values = values_of(status)
-    assert values['daemon schema'] == '0.13' and values['messages schema'] == '0.12'
+    assert values['daemon schema'] == newer and values['messages schema'] == ours
     assert bench.controller_status('cell-1', after=mark).level == OK
 
 
 def test_scenario_9_older_schema_is_refused_and_nothing_is_published(bench):
     fake = bench.start_fake([frames.controller('cell-1')])
-    fake.schema_version = '0.11'
+    fake.schema_version = frames.OLDER_SCHEMA_VERSION
     Advance(fake)
     bench.start_node(primary_controller='cell-1')
     status = bench.daemon_status(lambda found: found.message.startswith('schema too old'))
     assert status.level == ERROR
-    assert 'the daemon speaks 0.11, the messages need 0.12 or later' in status.message
+    older, ours = frames.OLDER_SCHEMA_VERSION, frames.SCHEMA_VERSION
+    assert f'the daemon speaks {older}, the messages need {ours} or later' in status.message
     time.sleep(0.6)
     assert bench.data_topics() == []
     assert fake.attached >= 1

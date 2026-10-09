@@ -42,8 +42,8 @@ daemon: `cell-1` gives `cell_1/joint_states`. One controller can be named the pr
 `controller_snapshot`, `io/<signal>`. No controller is primary by default.
 
 `controller_snapshot` is the whole of what the daemon knows about one controller: its id
-and name, and seven groups (identity, link health, panel state, RAPID, motion, I/O and the
-newest event log messages). Every data publisher is reliable, volatile and keeps the last
+and name, and ten groups (identity, link health, panel state, RAPID, motion, I/O, the
+newest event log messages, access, capabilities and freshness). Every data publisher is reliable, volatile and keeps the last
 10 messages. Nothing is latched: a late subscriber is never handed an old sample.
 
 ### Units
@@ -164,7 +164,7 @@ cell, log it or supervise it. It is not enough to control anything.
 The bridge speaks to [abb-rws-daemon](https://github.com/ichbinmeraj/abb-rws-daemon) and
 to nothing else. The daemon's README says how to build it, start it and add controllers.
 
-- The daemon must serve snapshot schema 0.12 or later. An older one is refused: nothing is
+- The daemon must serve snapshot schema 0.13 or later. An older one is refused: nothing is
   published and `/diagnostics` says so. A newer minor version is accepted with a warning,
   and what the messages do not know is ignored.
 - The bridge holds no controller credentials. User names and passwords stay with the
@@ -579,14 +579,14 @@ recording because a parameter was flipped. The bridge checks the daemon's mode a
 
 | Package | Build type | Role |
 |---|---|---|
-| `abb_rws_ros2_msgs` | `ament_cmake` | The 25 messages, `ControllerSnapshot` and what it is made of |
+| `abb_rws_ros2_msgs` | `ament_cmake` | The 33 messages, `ControllerSnapshot` and what it is made of |
 | `abb_rws_bridge` | `ament_python` | The node |
 | `abb_rws_ros2` | `ament_python` | Bringup: the launch file and the parameter file |
 
 Every message is generated from the daemon's JSON Schema; none is written by hand.
 
 - `abb_rws_ros2_msgs/schema/v0.schema.json` is a copy of the daemon's schema file, byte
-  for byte (version 0.12). `schema/SOURCE.json` records its version and hashes.
+  for byte (version 0.13). `schema/SOURCE.json` records its version and hashes.
 - `abb_rws_ros2_msgs/scripts/generate_msgs.py` (Python standard library only) writes the
   `.msg` files, the list CMake builds from, and `schema/v0.mapping.json`, which says how
   each JSON property maps to a message field. The bridge converts from that file, so the
@@ -596,8 +596,9 @@ Every message is generated from the daemon's JSON Schema; none is written by han
   a fixed list is the empty string; a yes-or-no value has three states; and an object that
   may be missing is an array of none or one.
 - `ControllerSnapshot` starts with a `std_msgs/Header`, which the schema does not have;
-  see [Stamps](#stamps). One field is renamed, because `virtual` is a C++ keyword:
-  `is_virtual` in the identity group.
+  see [Stamps](#stamps). Field names are the schema's `x-ros-name`, renamed by none
+  here: `virtual` is a C++ keyword, so the daemon's schema itself names the identity
+  group's field `is_virtual`.
 
 ```sh
 # Are the generated files what the generator would write? Writes nothing; exit 1 if not.

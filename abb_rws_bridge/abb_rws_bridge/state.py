@@ -39,7 +39,8 @@ import re
 from abb_rws_bridge import timeconv
 
 # The groups of one controller, in the order of the daemon's schema.
-GROUPS = ('identity', 'link', 'panel', 'rapid', 'motion', 'io', 'events')
+GROUPS = ('identity', 'link', 'panel', 'rapid', 'motion', 'io', 'events', 'access',
+          'capabilities', 'freshness')
 
 SNAPSHOT = 'snapshot'
 DELTA = 'delta'
@@ -91,7 +92,7 @@ class Applied:
 
     ``kind`` is ``'snapshot'``, ``'delta'``, ``'removed'``, ``'confirm'`` or
     ``'ignored'``. ``changed`` maps each controller the frame touched to the names of
-    the groups it replaced: all seven after a snapshot or for a controller a delta
+    the groups it replaced: every group after a snapshot or for a controller a delta
     added, the groups a delta named otherwise (a group name this version does not know
     included). After a confirm it holds the groups in which a stamp or the measured
     rate moved; no value ever changes in a confirm. ``removed`` lists the controllers
@@ -199,7 +200,7 @@ class FleetState:
 
         A snapshot replaces the whole fleet; the controllers it no longer lists are
         reported as removed. A delta replaces each group it names, whole, and the name.
-        A delta for an unknown controller adds it once all seven groups are there;
+        A delta for an unknown controller adds it once every group is there;
         until then the controller is held back: not served by ``get``, and reported. A
         removed frame drops a controller. A frame of an unknown type is ignored and
         counted; a group with an unknown name is kept and nothing else.
@@ -232,7 +233,7 @@ class FleetState:
         stream. So a confirm can move a stamp or a measured rate forward and can never
         change a value, add a controller or remove one.
 
-        A controller whose seven groups were all taken is confirmed: its
+        A controller whose groups were all taken is confirmed: its
         ``Seen.observed_at`` becomes the answer's ``observedAt``.
 
         The answer also shows whether the stream is behind (see ``behind_since``): a
@@ -615,18 +616,26 @@ def _group_fits(group_name, value):
 
 
 def _lacking(controller):
-    """Return what keeps a controller from being whole, one text per group."""
+    """
+    Return what keeps a controller from being whole.
+
+    The missing groups, then the ones that are not objects: each kind as one text that
+    names them all, so the line stays short whatever the number of groups.
+    """
+    missing = [name for name in GROUPS if name not in controller]
+    unfit = [name for name in GROUPS
+             if name in controller and not _group_fits(name, controller[name])]
     lacking = []
-    for group_name in GROUPS:
-        if group_name not in controller:
-            lacking.append(f'{group_name} is missing')
-        elif not _group_fits(group_name, controller[group_name]):
-            lacking.append(f'{group_name} is not an object')
+    if missing:
+        lacking.append(f'{", ".join(missing)} {"is" if len(missing) == 1 else "are"} missing')
+    if unfit:
+        lacking.append(f'{", ".join(unfit)} '
+                       + ('is not an object' if len(unfit) == 1 else 'are not objects'))
     return lacking
 
 
 def _held_back(controller_id, lacking):
-    return f'controller {_label(controller_id)} is held back: {", ".join(lacking)}'
+    return f'controller {_label(controller_id)} is held back: {"; ".join(lacking)}'
 
 
 def _label(text):

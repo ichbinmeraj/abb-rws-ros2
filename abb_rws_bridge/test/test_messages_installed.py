@@ -70,9 +70,9 @@ def _constant(field, value):
     return f'{field["ros"].upper()}_' + re.sub(r'[^A-Z0-9]+', '_', value.upper())
 
 
-def test_there_are_25_messages_and_the_package_is_the_mapped_one():
+def test_there_are_33_messages_and_the_package_is_the_mapped_one():
     assert MAPPING['package'] == PACKAGE
-    assert len(MESSAGE_NAMES) == 25
+    assert len(MESSAGE_NAMES) == 33
     assert 'ControllerSnapshot' in MESSAGE_NAMES
 
 

@@ -535,7 +535,8 @@ def _unknown_frame_type():
 
 def _newer_snapshot():
     timed = timed_frames()
-    timed.append((2.0, frames.snapshot_frame(observed_at=frames.iso(2), schema_version='0.13')))
+    timed.append((2.0, frames.snapshot_frame(observed_at=frames.iso(2),
+                                             schema_version=frames.NEWER_SCHEMA_VERSION)))
     return timed
 
 

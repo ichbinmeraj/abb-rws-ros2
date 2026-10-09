@@ -32,8 +32,15 @@ import json
 from pathlib import Path
 import re
 
-SCHEMA_VERSION = '0.12'
-GROUPS = ('identity', 'link', 'panel', 'rapid', 'motion', 'io', 'events')
+SCHEMA_VERSION = '0.13'
+# The minors either side of it, for a daemon newer or older than the messages.
+NEWER_SCHEMA_VERSION = f'0.{int(SCHEMA_VERSION.split(".")[1]) + 1}'
+OLDER_SCHEMA_VERSION = f'0.{int(SCHEMA_VERSION.split(".")[1]) - 1}'
+GROUPS = ('identity', 'link', 'panel', 'rapid', 'motion', 'io', 'events', 'access',
+          'capabilities', 'freshness')
+CAPABILITY_IDS = ('status-push', 'events-push', 'event-times', 'io-push', 'io-table',
+                  'joint-limits', 'mastership', 'write-access', 'rmmp')
+FRESH_GROUPS = ('identity', 'panel', 'rapid', 'motion', 'io', 'events', 'access')
 SIGNAL_TYPES = ('DI', 'DO', 'AI', 'AO', 'GI', 'GO')
 
 T0 = '2026-01-01T00:00:00.000Z'
@@ -133,18 +140,20 @@ def identity_group(*, controller_name='Test_Controller', controller_id='TEST-000
 
 def link_group(*, connected=True, quality='live', quality_reason='events streaming',
                since=T0, host='127.0.0.1', port=5466, use_https=True, subscriptions=True,
-               identity_status='confirmed', expected=SYS_ID, actual=SYS_ID, reconnect=None):
+               identity_status='confirmed', expected=SYS_ID, actual=SYS_ID, reconnect=None,
+               down_since=None):
     """
     Return one LinkGroup: by default a healthy link to the controller that was added.
 
     reconnect is None or a ReconnectInfo, {'failures': 2, 'nextAttemptAt': iso(5)}.
+    down_since is None while the link is healthy, else when it last was.
     """
     return {
         'connected': connected, 'quality': quality, 'qualityReason': quality_reason,
         'since': since, 'host': host, 'port': port, 'useHttps': use_https,
         'subscriptions': {'active': subscriptions},
         'identityCheck': {'status': identity_status, 'expected': expected, 'actual': actual},
-        'reconnect': reconnect,
+        'reconnect': reconnect, 'downSince': down_since,
     }
 
 
@@ -238,14 +247,79 @@ def events_group(recent=None, *, feed='feed-1', last_seq=None, via='subscription
             'asOf': as_of, 'error': error}
 
 
+def access_lock(lock='motion', *, held=False, holder=None, held_by_daemon=False,
+                reported='nomaster', as_of=T0, error=None):
+    """Return one AccessLockInfo: by default a RobotWare 7 lock nobody holds."""
+    return {'lock': lock, 'held': held, 'holder': holder, 'heldByDaemon': held_by_daemon,
+            'reported': reported, 'asOf': as_of, 'error': error}
+
+
+def access_group(locks=None, *, generation='rw7', model='mastership',
+                 remote_access_enabled=None, rmmp=None, via='poll', problem=None, as_of=T0):
+    """
+    Return one AccessGroup.
+
+    By default what a RobotWare 7 controller reports when nobody holds anything: its two
+    locks (edit, motion) free, RMMP offered and the daemon's session holding no privilege.
+    """
+    if locks is None:
+        locks = [access_lock('edit'), access_lock('motion')]
+    if rmmp is None:
+        rmmp = {'supported': True, 'privilege': 'none', 'asOf': as_of, 'error': None}
+    return {'generation': generation, 'model': model, 'locks': list(locks),
+            'remoteAccessEnabled': remote_access_enabled, 'rmmp': rmmp, 'via': via,
+            'problem': problem, 'asOf': as_of}
+
+
+def capabilities_group(entries=None, *, protocol='rws2', generation='rw7',
+                       robot_ware_raw='7.21.0', tested=True, as_of=T0):
+    """
+    Return one CapabilitiesGroup; entries maps a capability id to (state, reason).
+
+    By default every capability of a RobotWare 7 controller is available, except write
+    access, which only RobotWare 8 has.
+    """
+    states = {cap: ('available', None) for cap in CAPABILITY_IDS}
+    states['write-access'] = ('unavailable', 'RobotWare 8 only')
+    states.update(entries or {})
+    return {
+        'protocol': protocol, 'generation': generation, 'robotWare': robot_ware_raw,
+        'tested': tested,
+        'entries': [{'id': cap, 'state': states[cap][0], 'reason': states[cap][1]}
+                    for cap in CAPABILITY_IDS],
+        'asOf': as_of,
+    }
+
+
+def freshness_group(states=None, *, level='current', reasons=(), as_of=T0):
+    """
+    Return one FreshnessGroup; states maps a group name to its state.
+
+    By default what goes with the default controller(): every group current, except
+    I/O, which is idle (nothing watched).
+    """
+    by_group = {group: 'current' for group in FRESH_GROUPS}
+    by_group['io'] = 'idle'
+    by_group.update(states or {})
+    return {
+        'level': level, 'reasons': list(reasons),
+        'groups': [{'group': group, 'state': by_group[group],
+                    'asOf': None if by_group[group] in ('idle', 'unread') else as_of,
+                    'reason': None}
+                   for group in FRESH_GROUPS],
+    }
+
+
 def controller(controller_id='cell-1', *, name=None, identity=_UNSET, link=None, panel=None,
-               rapid=None, motion=None, io=None, events=None):
+               rapid=None, motion=None, io=None, events=None, access=None, capabilities=None,
+               freshness=None):
     """
     Return one ControllerSnapshot.
 
     By default: a connected virtual controller, its six robot joints watched, no I/O
-    watched, no events. Every group can be replaced; identity=None gives the null
-    identity of a controller that has not been read yet. name defaults to the id.
+    watched, no events, nobody holding any lock. Every group can be replaced;
+    identity=None gives the null identity of a controller that has not been read yet.
+    name defaults to the id.
     """
     return {
         'id': controller_id,
@@ -257,11 +331,14 @@ def controller(controller_id='cell-1', *, name=None, identity=_UNSET, link=None,
         'motion': motion_group() if motion is None else motion,
         'io': io_group() if io is None else io,
         'events': events_group() if events is None else events,
+        'access': access_group() if access is None else access,
+        'capabilities': capabilities_group() if capabilities is None else capabilities,
+        'freshness': freshness_group() if freshness is None else freshness,
     }
 
 
 def groups_of(snapshot):
-    """Return the seven groups of a ControllerSnapshot: what a delta for a new id carries."""
+    """Return the ten groups of a ControllerSnapshot: what a delta for a new id carries."""
     return {group: copy.deepcopy(snapshot[group]) for group in GROUPS}
 
 

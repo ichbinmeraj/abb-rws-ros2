@@ -24,6 +24,9 @@ import frames
 import pytest
 
 ALL = frozenset(state.GROUPS)
+# The groups with a stamp (asOf) of their own: link has none, and freshness has one per
+# group it rates.
+STAMPED = ALL - {'link', 'freshness'}
 CLOCK = {'offsetMs': 0, 'measuredAt': frames.T0, 'problem': None}
 
 # One change of a value per group: where it is, and the new value.
@@ -35,6 +38,9 @@ VALUE_CHANGES = {
     'motion': (('motion', 'units', 0, 'joints', 5, 'value'), 5.0),
     'io': (('io', 'signals', 0, 'value'), '1'),
     'events': (('events', 'lastSeq'), 99),
+    'access': (('access', 'locks', 0, 'held'), True),
+    'capabilities': (('capabilities', 'tested'), False),
+    'freshness': (('freshness', 'level'), 'degraded'),
 }
 
 
@@ -50,7 +56,12 @@ def _controller(controller_id='cell-1', seconds=0.0, *, j6=0.0, achieved_hz=7.9)
         motion=frames.motion_group([frames.motion_unit(joints=joints)], as_of=stamp,
                                    achieved_hz=achieved_hz),
         io=frames.io_group([frames.signal(as_of=stamp)], as_of=stamp),
-        events=frames.events_group([frames.event()], as_of=stamp, clock=dict(CLOCK)))
+        events=frames.events_group([frames.event()], as_of=stamp, clock=dict(CLOCK)),
+        access=frames.access_group(
+            [frames.access_lock('edit', as_of=stamp), frames.access_lock('motion', as_of=stamp)],
+            as_of=stamp),
+        capabilities=frames.capabilities_group(as_of=stamp),
+        freshness=frames.freshness_group(as_of=stamp))
 
 
 def _with_change(controller, group):
@@ -95,6 +106,9 @@ FRESH_VALUES = {
     'motion': (('motion', 'units', 0, 'joints', 5, 'value'), lambda number: number + 0.125),
     'io': (('io', 'signals', 0, 'value'), str),
     'events': (('events', 'lastSeq'), lambda number: 1000 + number),
+    'access': (('access', 'problem'), 'problem {}'.format),
+    'capabilities': (('capabilities', 'robotWare'), '7.{}.0'.format),
+    'freshness': (('freshness', 'groups', 0, 'reason'), 'reason {}'.format),
 }
 
 
@@ -118,7 +132,7 @@ def _restamped(value, stamp):
     return value
 
 
-def test_the_groups_are_the_seven_of_the_schema():
+def test_the_groups_are_those_of_the_schema():
     assert state.GROUPS == frames.GROUPS
     assert list(state.GROUPS) == frames.load_schema()['definitions']['GroupName']['enum']
 
@@ -287,7 +301,7 @@ def test_motion_that_was_never_read_has_no_motion_time():
     assert fleet.seen('cell-1') == state.Seen(frames.iso(4), 5000, 5.0, frames.iso(4), 5000, 5.0)
 
 
-def test_a_delta_for_an_unknown_controller_with_all_seven_groups_adds_it():
+def test_a_delta_for_an_unknown_controller_with_every_group_adds_it():
     fleet = _fleet()
     new = _controller('cell-9', 2.0)
     applied = fleet.apply(
@@ -443,7 +457,7 @@ def test_an_unknown_key_of_a_snapshot_controller_is_kept():
     fleet = _fleet(newer)
     assert fleet.get('cell-1')['diag'] == {'load': 3}
     assert fleet.get('cell-1')['label'] == 'x'
-    # The seven groups of an answer are confirmed whatever else the controller holds.
+    # The groups of an answer are confirmed whatever else the controller holds.
     answer = _controller(seconds=1.0)
     applied = fleet.confirm(frames.controller_list([answer], observed_at=frames.iso(1)), 2000, 2.0)
     assert applied.confirmed == ('cell-1',)
@@ -765,6 +779,7 @@ def test_a_confirm_moves_the_stamps_of_a_robot_that_stands_still():
     assert _values(after) == _values(before)
     for name in ALL - {'link'}:
         assert after[name] is answer[name]
+    for name in STAMPED:
         assert after[name]['asOf'] == frames.iso(1.0)
     assert after['link'] is before['link']
     assert after['io']['signals'][0]['asOf'] == frames.iso(1.0)
@@ -826,8 +841,9 @@ def test_a_confirm_never_changes_a_value(group):
     assert (fleet.seen('cell-1').wall_ns, fleet.seen('cell-1').mono) == (1000, 1.0)
     # The groups that do agree took their new stamps.
     for other in ALL - {group, 'link'}:
-        assert after[other]['asOf'] == frames.iso(1.0)
         assert other in applied.changed['cell-1']
+    for other in STAMPED - {group}:
+        assert after[other]['asOf'] == frames.iso(1.0)
     assert (applied.motion_moved == ()) == (group == 'motion')
 
 
@@ -947,7 +963,7 @@ def test_an_answer_equal_to_the_state_confirms_it_without_replacing_anything():
 
 
 @pytest.mark.parametrize('missing', state.GROUPS)
-def test_a_controller_is_confirmed_only_when_all_seven_groups_were_taken(missing):
+def test_a_controller_is_confirmed_only_when_every_group_was_taken(missing):
     fleet = _fleet()
     whole = _controller(seconds=1.0)
     partial = dict(whole)
@@ -960,7 +976,7 @@ def test_a_controller_is_confirmed_only_when_all_seven_groups_were_taken(missing
     seen = fleet.seen('cell-1')
     assert (seen.observed_at, seen.wall_ns, seen.mono) == (frames.T0, 1000, 1.0)
 
-    # Six groups taken six times over still confirm nothing; the seventh does.
+    # All groups but one, taken again, still confirm nothing; the whole controller does.
     applied = fleet.confirm(frames.controller_list([partial], observed_at=frames.iso(1.2)),
                             2500, 2.5)
     assert applied.confirmed == ()
@@ -1049,7 +1065,8 @@ def test_an_entry_that_is_no_controller_confirms_nothing(entry):
     before = fleet.get('cell-1')
     seen = fleet.seen('cell-1')
     applied = fleet.confirm(
-        {'schemaVersion': '0.12', 'observedAt': frames.iso(5), 'controllers': [entry]}, 2000, 2.0)
+        {'schemaVersion': frames.SCHEMA_VERSION, 'observedAt': frames.iso(5),
+         'controllers': [entry]}, 2000, 2.0)
     assert applied == state.Applied('confirm')
     assert fleet.get('cell-1') is before
     assert fleet.seen('cell-1') == seen
@@ -1058,7 +1075,7 @@ def test_an_entry_that_is_no_controller_confirms_nothing(entry):
 def test_an_answer_of_another_schema_version_than_the_stream_is_refused():
     fleet = _fleet()
     answer = frames.controller_list([_controller(seconds=1.0)], observed_at=frames.iso(1),
-                                    schema_version='0.13')
+                                    schema_version=frames.NEWER_SCHEMA_VERSION)
     applied = fleet.confirm(answer, 2000, 2.0)
     assert applied.kind == 'ignored'
     assert 'schema' in applied.problem
