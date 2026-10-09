@@ -1,13 +1,13 @@
 # Generated from the abb-rws-daemon JSON Schema by generate_msgs.py. Do not edit.
 #
-# The controller's event log (slice 6, added in schema 0.10). The daemon reads it on every
-# connection, then follows it: while the link's event subscription is live the controller announces
-# each new message and the log is read again; while none delivers, the daemon reads the log itself
-# every few seconds. Messages are de-duplicated across those reads and across reconnects, and
-# numbered in the controller's order (`seq`). The daemon keeps the last EVENTS_KEEP_MAX per
-# controller; this group carries the newest EVENTS_RECENT_MAX of them, and `GET
-# /v0/controllers/:id/events` the rest. Before a link to a controller with a known system id is
-# confirmed, nothing is read from it: recorded events outlive the link.
+# The controller's event log (added in schema 0.10). The daemon reads it on every connection, then
+# follows it: while the link's event subscription is live the controller announces each new message
+# and the log is read again; while none delivers, the daemon reads the log itself every few
+# seconds. Messages are de-duplicated across those reads and across reconnects, and numbered in the
+# controller's order (`seq`). The daemon keeps the last EVENTS_KEEP_MAX per controller; this group
+# carries the newest EVENTS_RECENT_MAX of them, and `GET /v0/controllers/:id/events` the rest.
+# Before a link to a controller with a known system id is confirmed, nothing is read from it:
+# recorded events outlive the link.
 
 # Names the numbering `seq` belongs to. It changes when the daemon starts or the controller is
 # added again, and `seq` starts again at 1: a consumer holding a cursor from another feed starts

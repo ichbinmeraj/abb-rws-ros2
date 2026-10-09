@@ -1,8 +1,8 @@
 # Generated from the abb-rws-daemon JSON Schema by generate_msgs.py. Do not edit.
 #
-# RAPID execution (slice 3). Execution state and cycle are pushed by the controller; tasks and
-# modules ride the client's slow poll; the pointers are read by the daemon (every second while a
-# task runs, otherwise every few seconds, and at once when execution changes).
+# RAPID execution. Execution state and cycle are pushed by the controller; tasks and modules ride
+# the client's slow poll; the pointers are read by the daemon (every second while a task runs,
+# otherwise every few seconds, and at once when execution changes).
 
 # Empty when not known.
 string exec_state

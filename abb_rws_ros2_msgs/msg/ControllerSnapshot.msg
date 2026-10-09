@@ -31,3 +31,12 @@ IoGroup io
 
 # Added in schema 0.10. No events until the log has been read.
 EventsGroup events
+
+# Added in schema 0.13. Nothing read until the controller is connected.
+AccessGroup access
+
+# Added in schema 0.13.
+CapabilitiesGroup capabilities
+
+# Added in schema 0.13.
+FreshnessGroup freshness

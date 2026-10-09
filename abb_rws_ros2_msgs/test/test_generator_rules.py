@@ -29,11 +29,13 @@ GENERATED_LINE = (
 )
 
 EXPECTED_MESSAGES = {
+    'AccessGroup', 'AccessHolder', 'AccessLockInfo', 'CapabilitiesGroup', 'Capability',
     'ControllerAnswer', 'ControllerEvent', 'ControllerSnapshot', 'EventArg', 'EventClock',
-    'EventTime', 'EventsGroup', 'GroupError', 'IdentityCheck', 'IdentityGroup', 'IoGroup',
-    'IoWatchedSignal', 'LinkGroup', 'LinkSubscriptions', 'MotionGroup', 'MotionJoint',
-    'MotionPose', 'MotionRate', 'MotionUnitInfo', 'PanelGroup', 'RapidGroup', 'RapidPointer',
-    'RapidTaskInfo', 'ReconnectInfo', 'RobotWareVersion',
+    'EventTime', 'EventsGroup', 'FreshnessGroup', 'GroupError', 'GroupFreshness',
+    'IdentityCheck', 'IdentityGroup', 'IoGroup', 'IoWatchedSignal', 'LinkGroup',
+    'LinkSubscriptions', 'MotionGroup', 'MotionJoint', 'MotionPose', 'MotionRate',
+    'MotionUnitInfo', 'PanelGroup', 'RapidGroup', 'RapidPointer', 'RapidTaskInfo',
+    'ReconnectInfo', 'RmmpInfo', 'RobotWareVersion',
 }
 
 
@@ -302,6 +304,18 @@ def test_keyword_field_name_fails_unless_the_rename_table_names_it():
     assert generated.mapping['renames'] == {'Root.virtual': 'is_virtual'}
 
 
+def test_keyword_property_the_schema_names_for_ros_needs_no_rename():
+    generated, lines, fields = run({'virtual': {'type': ['boolean', 'null'],
+                                                'x-ros-name': 'is_virtual'}})
+    assert 'int8 is_virtual' in lines
+    assert fields['is_virtual']['json'] == 'virtual'
+    assert generated.mapping['renames'] == {}
+
+
+def test_the_rename_table_is_empty_the_daemon_names_every_field():
+    assert gen.RENAMES == {}
+
+
 def test_rename_that_names_no_property_fails():
     fails({'text': STRING}, 'rename table names no mapped property: Gone.field',
           renames={'Gone.field': 'x'})
@@ -523,18 +537,21 @@ def test_definitions_hash_follows_the_mapped_definitions_only():
     assert renamed != base and renamed != digest(renames={'Root.child': 'offspring'})
 
 
-def test_vendored_schema_gives_the_25_messages():
+def test_vendored_schema_gives_the_33_messages():
     schema_bytes = (PACKAGE_DIR / 'schema' / 'v0.schema.json').read_bytes()
     generated = gen.generate(json.loads(schema_bytes))
-    assert set(generated.messages) == EXPECTED_MESSAGES and len(generated.messages) == 25
+    assert set(generated.messages) == EXPECTED_MESSAGES and len(generated.messages) == 33
     mapping = generated.mapping
     assert [name for name, entry in mapping['messages'].items() if entry.get('header')] == [
         'ControllerSnapshot']
     root_lines = [line for line in generated.messages['ControllerSnapshot'].splitlines()
                   if line and not line.startswith('#')]
     assert root_lines[0] == 'std_msgs/Header header'
-    assert mapping['renames'] == {'IdentityGroup.virtual': 'is_virtual'}
+    # The schema names the keyword field for ROS itself (x-ros-name); nothing is renamed here.
+    assert mapping['renames'] == {}
     assert 'int8 is_virtual' in generated.messages['IdentityGroup'].splitlines()
+    identity = {field['ros']: field for field in mapping['messages']['IdentityGroup']['fields']}
+    assert identity['is_virtual']['json'] == 'virtual'
     assert {(entry['message'], entry['field']) for entry in mapping['warnings']} == {
         ('LinkGroup', 'port'), ('RapidPointer', 'module'),
         ('MotionJoint', 'min'), ('MotionJoint', 'max')}
@@ -548,7 +565,7 @@ def test_vendored_schema_gives_the_25_messages():
     assert list(record) == ['source', 'schemaId', 'schemaVersion', 'schemaSha256',
                             'definitionsSha256', 'messages', 'renames']
     assert record['source'] == 'abb-rws-daemon, schema/v0.schema.json'
-    assert record['messages'] == 25
+    assert record['messages'] == 33
     assert record['schemaVersion'] == json.loads(schema_bytes)['x-schema-version']
 
 
@@ -565,7 +582,7 @@ def test_command_line_writes_the_tree_elsewhere_and_removes_a_stale_message(tmp_
     assert gen.main(['--out-dir', str(tmp_path)]) == 0
     tree = _tree(tmp_path)
     messages = [name for name in tree if name.endswith('.msg')]
-    assert len(messages) == 25 and 'msg/Gone.msg' not in tree and 'msg/notes.txt' in tree
+    assert len(messages) == 33 and 'msg/Gone.msg' not in tree and 'msg/notes.txt' in tree
     assert {'msg/interfaces.cmake', 'schema/v0.mapping.json', 'schema/SOURCE.json'} <= set(tree)
     assert 'schema/v0.schema.json' not in tree
     assert all(b'\r' not in data for data in tree.values())
@@ -608,12 +625,13 @@ def test_check_lists_missing_stale_and_extra_files_and_a_changed_schema(tmp_path
         'stale: msg/interfaces.cmake', 'extra: msg/Extra.msg']
     # Another schema file than the one SOURCE.json names: its hash and version are reported.
     schema = json.loads(schema_path.read_bytes())
+    vendored = schema['x-schema-version']
     schema['x-schema-version'] = '0.999'
     (tmp_path / 'schema' / 'v0.schema.json').write_text(
         json.dumps(schema, indent=2) + '\n', newline='\n')
     problems = gen.check_tree(tmp_path)
     assert any(line.startswith('schema/SOURCE.json: schemaSha256 is ') for line in problems)
-    assert any(line.startswith("schema/SOURCE.json: schemaVersion is '0.12'")
+    assert any(line.startswith(f"schema/SOURCE.json: schemaVersion is '{vendored}'")
                for line in problems)
     assert 'stale: schema/SOURCE.json' in problems and 'stale: schema/v0.mapping.json' in problems
     (tmp_path / 'schema' / 'v0.schema.json').unlink()

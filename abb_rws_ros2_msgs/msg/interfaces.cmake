@@ -15,6 +15,11 @@
 # Generated from the abb-rws-daemon JSON Schema by generate_msgs.py. Do not edit.
 
 set(MSG_FILES
+  "msg/AccessGroup.msg"
+  "msg/AccessHolder.msg"
+  "msg/AccessLockInfo.msg"
+  "msg/CapabilitiesGroup.msg"
+  "msg/Capability.msg"
   "msg/ControllerAnswer.msg"
   "msg/ControllerEvent.msg"
   "msg/ControllerSnapshot.msg"
@@ -22,7 +27,9 @@ set(MSG_FILES
   "msg/EventClock.msg"
   "msg/EventTime.msg"
   "msg/EventsGroup.msg"
+  "msg/FreshnessGroup.msg"
   "msg/GroupError.msg"
+  "msg/GroupFreshness.msg"
   "msg/IdentityCheck.msg"
   "msg/IdentityGroup.msg"
   "msg/IoGroup.msg"
@@ -39,5 +46,6 @@ set(MSG_FILES
   "msg/RapidPointer.msg"
   "msg/RapidTaskInfo.msg"
   "msg/ReconnectInfo.msg"
+  "msg/RmmpInfo.msg"
   "msg/RobotWareVersion.msg"
 )

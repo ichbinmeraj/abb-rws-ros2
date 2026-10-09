@@ -2,8 +2,8 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "urn:abb-rws-daemon:schema:v0",
   "title": "ControllerSnapshot",
-  "description": "The abb-rws-daemon wire format, major line 0, generated from the daemon's TypeScript types. Root: one ControllerSnapshot. Every type of the wire is under definitions (stream frames: StreamFrame). This file is the schema of version 0.12 exactly (x-schema-version). Validating strictly against it means \"this version exactly\": objects allow no other properties. A consumer built against an older version must not validate a newer daemon strictly. Changes within 0.x are usually additive, but breaking changes inside 0.x are possible; each is listed in x-breaking. Validate a recording or a fixture against the history file of the version it names (history/v<version>.schema.json). Units: x-unit on a number names its unit; x-unit-from names the sibling property that holds it. Times are ISO 8601 UTC (format date-time). x-ros-name is each property's field name on the ROS side.",
-  "x-schema-version": "0.12",
+  "description": "The abb-rws-daemon wire format, major line 0, generated from the daemon's TypeScript types. Root: one ControllerSnapshot. Every type of the wire is under definitions (stream frames: StreamFrame). This file is the schema of version 0.13 exactly (x-schema-version). Validating strictly against it means \"this version exactly\": objects allow no other properties. A consumer built against an older version must not validate a newer daemon strictly. Changes within 0.x are usually additive, but breaking changes inside 0.x are possible; each is listed in x-breaking. Validate a recording or a fixture against the history file of the version it names (history/v<version>.schema.json). Units: x-unit on a number names its unit; x-unit-from names the sibling property that holds it. Times are ISO 8601 UTC (format date-time). x-ros-name is each property's field name on the ROS side.",
+  "x-schema-version": "0.13",
   "x-breaking": [
     {
       "version": "0.11",
@@ -11,7 +11,7 @@
     }
   ],
   "x-constants": {
-    "SCHEMA_VERSION": "0.12",
+    "SCHEMA_VERSION": "0.13",
     "TOKEN_HEADER": "x-abb-rws-token",
     "TOKEN_PROTOCOL_PREFIX": "abb-rws-token.",
     "STREAM_PROTOCOL": "abb-rws.v0",
@@ -30,7 +30,10 @@
     "STOP_WAIT_MS": 8000,
     "RECORDING_LABEL_PATTERN": "^[a-z0-9-]{1,32}$",
     "REPLAY_SPEED_MIN": 0.1,
-    "REPLAY_SPEED_MAX": 50
+    "REPLAY_SPEED_MAX": 50,
+    "ACCESS_LOCKS_MAX": 3,
+    "ACCESS_READ_MS": 5000,
+    "ACCESS_READ_SLOW_MS": 15000
   },
   "$ref": "#/definitions/ControllerSnapshot",
   "definitions": {
@@ -269,7 +272,7 @@
             "boolean",
             "null"
           ],
-          "x-ros-name": "virtual"
+          "x-ros-name": "is_virtual"
         },
         "mac": {
           "type": [
@@ -435,6 +438,15 @@
           "format": "date-time",
           "x-ros-name": "since"
         },
+        "downSince": {
+          "description": "While the link is not healthy: when it last was (`live` or `polling`), or,\nfor a controller never reached, when the daemon began trying. null while\nthe link is healthy. Unlike `since`, it does not move with each reconnect\nattempt. Added in schema 0.13.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "x-ros-name": "down_since"
+        },
         "host": {
           "type": "string",
           "x-ros-name": "host"
@@ -484,6 +496,7 @@
         "quality",
         "qualityReason",
         "since",
+        "downSince",
         "host",
         "port",
         "useHttps",
@@ -666,7 +679,7 @@
       "additionalProperties": false
     },
     "RapidGroup": {
-      "description": "RAPID execution (slice 3). Execution state and cycle are pushed by the\ncontroller; tasks and modules ride the client's slow poll; the pointers are\nread by the daemon (every second while a task runs, otherwise every few\nseconds, and at once when execution changes).",
+      "description": "RAPID execution. Execution state and cycle are pushed by the\ncontroller; tasks and modules ride the client's slow poll; the pointers are\nread by the daemon (every second while a task runs, otherwise every few\nseconds, and at once when execution changes).",
       "type": "object",
       "properties": {
         "execState": {
@@ -930,7 +943,7 @@
       "additionalProperties": false
     },
     "MotionGroup": {
-      "description": "Motion (slice 4). Joint positions are not subscribable on any generation\n(no subscription resource carries them), so the daemon polls them - but\nonly while a consumer holds a watch lease\n(`POST /v0/controllers/:id/motion/watch`); otherwise nothing is sampled and\n`watching` is false. One sampler per controller serves every consumer:\n`watching` is true while any consumer's lease runs (since schema 0.6 each\nconsumer may hold its own, `leaseId`). Joints at `rate.targetHz`, the pose\nat a quarter of that; both ride the controller's own session, whose request\nspacing keeps the controller under its 20 req/s ceiling. The target drops\nwhile the link is `polling` (the manager's own polls then use ~12 req/s, as\nmeasured on virtual controllers). The stream coalesces this group like\n`panel` (at most 4 frames/s).",
+      "description": "Motion. Joint positions are not subscribable on any generation\n(no subscription resource carries them), so the daemon polls them - but\nonly while a consumer holds a watch lease\n(`POST /v0/controllers/:id/motion/watch`); otherwise nothing is sampled and\n`watching` is false. One sampler per controller serves every consumer:\n`watching` is true while any consumer's lease runs (since schema 0.6 each\nconsumer may hold its own, `leaseId`). Joints at `rate.targetHz`, the pose\nat a quarter of that; both ride the controller's own session, whose request\nspacing keeps the controller under its 20 req/s ceiling. The target drops\nwhile the link is `polling` (the manager's own polls then use ~12 req/s, as\nmeasured on virtual controllers). The stream coalesces this group like\n`panel` (at most 4 frames/s).",
       "type": "object",
       "properties": {
         "watching": {
@@ -1080,7 +1093,7 @@
       "additionalProperties": false
     },
     "IoGroup": {
-      "description": "I/O (slice 5). Signals are watched behind the same lease pattern as motion\n(`POST /v0/controllers/:id/io/watch`): nothing is subscribed or polled until\na consumer asks, and a lapsed lease releases the signals again. The watch\nlist is capped (`IO_WATCH_MAX`); the full signal table is served by\n`GET /v0/controllers/:id/io/signals` (search), not by this group.\n\nSince schema 0.6 each consumer may hold a lease of its own (`leaseId`), and\n`signals` is the union of every lease's set: a consumer picks out the names\nits own grant accepted. A consumer's lease that runs out while another is\nstill held takes out only the signals no other lease holds; when the last\none runs out, the whole set stays listed with its last values, `watching`\nfalse.",
+      "description": "I/O. Signals are watched behind the same lease pattern as motion\n(`POST /v0/controllers/:id/io/watch`): nothing is subscribed or polled until\na consumer asks, and a lapsed lease releases the signals again. The watch\nlist is capped (`IO_WATCH_MAX`); the full signal table is served by\n`GET /v0/controllers/:id/io/signals` (search), not by this group.\n\nSince schema 0.6 each consumer may hold a lease of its own (`leaseId`), and\n`signals` is the union of every lease's set: a consumer picks out the names\nits own grant accepted. A consumer's lease that runs out while another is\nstill held takes out only the signals no other lease holds; when the last\none runs out, the whole set stays listed with its last values, `watching`\nfalse.",
       "type": "object",
       "properties": {
         "watching": {
@@ -1344,7 +1357,7 @@
       "additionalProperties": false
     },
     "EventsGroup": {
-      "description": "The controller's event log (slice 6, added in schema 0.10). The daemon\nreads it on every connection, then follows it: while the link's event\nsubscription is live the controller announces each new message and the log\nis read again; while none delivers, the daemon reads the log itself every\nfew seconds. Messages are de-duplicated across those reads and across\nreconnects, and numbered in the controller's order (`seq`). The daemon\nkeeps the last EVENTS_KEEP_MAX per controller; this group carries the\nnewest EVENTS_RECENT_MAX of them, and `GET /v0/controllers/:id/events` the\nrest. Before a link to a controller with a known system id is confirmed,\nnothing is read from it: recorded events outlive the link.",
+      "description": "The controller's event log (added in schema 0.10). The daemon\nreads it on every connection, then follows it: while the link's event\nsubscription is live the controller announces each new message and the log\nis read again; while none delivers, the daemon reads the log itself every\nfew seconds. Messages are de-duplicated across those reads and across\nreconnects, and numbered in the controller's order (`seq`). The daemon\nkeeps the last EVENTS_KEEP_MAX per controller; this group carries the\nnewest EVENTS_RECENT_MAX of them, and `GET /v0/controllers/:id/events` the\nrest. Before a link to a controller with a known system id is confirmed,\nnothing is read from it: recorded events outlive the link.",
       "type": "object",
       "properties": {
         "feed": {
@@ -1500,6 +1513,33 @@
             }
           ],
           "x-ros-name": "events"
+        },
+        "access": {
+          "description": "Added in schema 0.13. Nothing read until the controller is connected.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/AccessGroup"
+            }
+          ],
+          "x-ros-name": "access"
+        },
+        "capabilities": {
+          "description": "Added in schema 0.13.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/CapabilitiesGroup"
+            }
+          ],
+          "x-ros-name": "capabilities"
+        },
+        "freshness": {
+          "description": "Added in schema 0.13.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/FreshnessGroup"
+            }
+          ],
+          "x-ros-name": "freshness"
         }
       },
       "required": [
@@ -1511,7 +1551,10 @@
         "rapid",
         "motion",
         "io",
-        "events"
+        "events",
+        "access",
+        "capabilities",
+        "freshness"
       ],
       "additionalProperties": false,
       "x-ros": "msg"
@@ -1800,7 +1843,7 @@
       "additionalProperties": false
     },
     "GroupName": {
-      "description": "The groups a delta frame may carry (`events` added in schema 0.10).",
+      "description": "The groups a delta frame may carry (`events` added in schema 0.10; `access`, `capabilities` and `freshness` in schema 0.13).",
       "type": "string",
       "enum": [
         "identity",
@@ -1809,7 +1852,10 @@
         "rapid",
         "motion",
         "io",
-        "events"
+        "events",
+        "access",
+        "capabilities",
+        "freshness"
       ]
     },
     "StreamFrame": {
@@ -1923,6 +1969,30 @@
             }
           ],
           "x-ros-name": "events"
+        },
+        "access": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/AccessGroup"
+            }
+          ],
+          "x-ros-name": "access"
+        },
+        "capabilities": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/CapabilitiesGroup"
+            }
+          ],
+          "x-ros-name": "capabilities"
+        },
+        "freshness": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/FreshnessGroup"
+            }
+          ],
+          "x-ros-name": "freshness"
         }
       },
       "additionalProperties": false
@@ -2702,6 +2772,564 @@
         "mode",
         "recording",
         "replay"
+      ],
+      "additionalProperties": false
+    },
+    "AccessGeneration": {
+      "description": "The RobotWare generation whose access rules a controller follows, as the\nclient determined it when it connected: `rw6` (RobotWare 6), `rw7`\n(RobotWare 7) or `rw8` (RobotWare 8). Not the protocol generation of\n`identity.robotWare.generation` (`rws1` / `rws2`): RobotWare 7 and 8 both\nspeak RWS 2.0. Added in schema 0.13.",
+      "type": "string",
+      "enum": [
+        "rw6",
+        "rw7",
+        "rw8"
+      ]
+    },
+    "AccessModel": {
+      "description": "What a controller arbitrates writes with: `mastership` (RobotWare 6: the\ndomains cfg, motion and rapid; RobotWare 7: edit and motion) or\n`writeaccess` (RobotWare 8: one control-station write access for\neverything). Added in schema 0.13.",
+      "type": "string",
+      "enum": [
+        "mastership",
+        "writeaccess"
+      ]
+    },
+    "AccessLockName": {
+      "description": "One lock a controller arbitrates (see `AccessModel`). Added in schema 0.13.",
+      "type": "string",
+      "enum": [
+        "cfg",
+        "motion",
+        "rapid",
+        "edit",
+        "writeaccess"
+      ]
+    },
+    "AccessHolder": {
+      "description": "Who holds a lock, as far as the controller says. `local`: a local client,\nnormally the FlexPendant (the controller only says `local`). `remote`: a\nremote client. `internal`: the controller itself. `station`: a control\nstation (RobotWare 8). A holder is named, never identified: no user id and\nno control-station id is served, logged or recorded. Added in schema 0.13.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "local",
+            "remote",
+            "internal",
+            "station"
+          ],
+          "x-ros-name": "kind"
+        },
+        "name": {
+          "description": "RobotWare 8: the holding control station's name, as the controller reports it; null when it reports none, and on RobotWare 6 and 7.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-ros-name": "name"
+        },
+        "application": {
+          "description": "RobotWare 6 and 7: the application name the controller reports for the holder; null when it reports none, and on RobotWare 8.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-ros-name": "application"
+        }
+      },
+      "required": [
+        "kind",
+        "name",
+        "application"
+      ],
+      "additionalProperties": false
+    },
+    "AccessLockInfo": {
+      "description": "One lock of a controller, as its own status reports it. `held`, `holder`\nand `asOf` always belong to the same reading: the last one the daemon read\nand understood on this connection. An answer that was empty, of an unknown\nform or not understood is a failed read (`error`), never \"nobody holds it\".\nAdded in schema 0.13.",
+      "type": "object",
+      "properties": {
+        "lock": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/AccessLockName"
+            }
+          ],
+          "x-ros-name": "lock"
+        },
+        "held": {
+          "description": "Someone holds the lock (true) or nobody does (false), as the controller said at `asOf`; null while no status was read and understood on this connection. A reading, never a promise: it can change the moment after it was read.",
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "x-ros-name": "held"
+        },
+        "holder": {
+          "description": "Who holds it; null when nobody does, when the controller does not say, or when `held` is null.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AccessHolder"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-ros-name": "holder"
+        },
+        "heldByDaemon": {
+          "description": "Whether the daemon's own session holds the lock, from the client's own record of what this session requested, not from the controller's status. A daemon without write routes never requests a lock, so this is false; null when the client is not sure.",
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "x-ros-name": "held_by_daemon"
+        },
+        "reported": {
+          "description": "RobotWare 6 and 7: the status word of the most recent answer that carried one, as the client handed it over, for example `nomaster`, `local`, `remote` or `internal`. While `error` says the status was not understood, this is the word that was not understood, or, when that answer carried no word at all, the word of the answer before it; `held` and `holder` are still those of the last good read. null on RobotWare 8 and until an answer carried a word.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-ros-name": "reported"
+        },
+        "asOf": {
+          "description": "When this lock's status was last read and understood on this connection; null until then. Kept, not advanced, while reads fail or the link is down.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "x-ros-name": "as_of"
+        },
+        "error": {
+          "description": "The last read of this lock's status failed or was not understood; `held`, `holder` and `asOf` keep what the last good read gave. null once a read succeeds.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/GroupError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-ros-name": "error"
+        }
+      },
+      "required": [
+        "lock",
+        "held",
+        "holder",
+        "heldByDaemon",
+        "reported",
+        "asOf",
+        "error"
+      ],
+      "additionalProperties": false
+    },
+    "RmmpPrivilege": {
+      "description": "The RMMP privilege words this daemon knows: `none`, a request waiting for\nthe operator (`pending modify`, `pending exec`), or a granted privilege\n(`modify`, `exec`). Added in schema 0.13.",
+      "type": "string",
+      "enum": [
+        "none",
+        "pending modify",
+        "pending exec",
+        "modify",
+        "exec"
+      ]
+    },
+    "RmmpInfo": {
+      "description": "RMMP, the privilege a remote client needs before it may write in a manual\nmode on RobotWare 6 and 7. Added in schema 0.13.",
+      "type": "object",
+      "properties": {
+        "supported": {
+          "description": "Whether this controller offers RMMP, as the client and the controller report it: true once a privilege was read on this connection; false on RobotWare 8 (nothing is sent) and when the controller answered that it does not offer the service; null until one of them is known.",
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "x-ros-name": "supported"
+        },
+        "privilege": {
+          "description": "The privilege of the daemon's own session as the controller reported it at `asOf`. The daemon never requests it. null where RMMP is not offered and until a privilege was read and understood on this connection.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RmmpPrivilege"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-ros-name": "privilege"
+        },
+        "asOf": {
+          "description": "When the privilege was last read and understood on this connection; null until then and where RMMP is not offered.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "x-ros-name": "as_of"
+        },
+        "error": {
+          "description": "The last read failed or was not understood; null once one succeeds.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/GroupError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-ros-name": "error"
+        }
+      },
+      "required": [
+        "supported",
+        "privilege",
+        "asOf",
+        "error"
+      ],
+      "additionalProperties": false
+    },
+    "AccessGroup": {
+      "description": "Access (added in schema 0.13): what the controller itself reports about\nwho may write to it. The daemon reads this status every ACCESS_READ_MS\n(ACCESS_READ_SLOW_MS while the link is `polling`), at once on a new\nconnection, and sooner than booked when a link recovers or the operating\nmode changes, though on one connection never twice within ACCESS_READ_MS.\nWhat was read on an earlier connection is cleared when the link is usable\nagain, so every value here was read on the present connection or, while\nthe link is down, on the last one. The daemon only reads: it never\nrequests, releases or changes mastership, write access, RMMP or a\ncontrol-station registration. Nothing here says that a write would\nsucceed: the controller decides every write when it arrives.",
+      "type": "object",
+      "properties": {
+        "generation": {
+          "description": "The generation as the client determined it from what the controller reported when it connected; null until then, and for the whole connection when the controller reported no RobotWare version the client could use.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AccessGeneration"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-ros-name": "generation"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AccessModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-ros-name": "model"
+        },
+        "locks": {
+          "description": "One entry per lock of the generation (RobotWare 6: cfg, motion, rapid; RobotWare 7: edit, motion; RobotWare 8: writeaccess); empty until the generation is known.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AccessLockInfo"
+          },
+          "maxItems": 3,
+          "x-max-items-from": "ACCESS_LOCKS_MAX",
+          "x-ros-name": "locks"
+        },
+        "remoteAccessEnabled": {
+          "description": "RobotWare 8: the controller's own \"external control enabled\" flag (remote access, switched at the FlexPendant), as its write-access status reported it with the last good read of the lock. null on RobotWare 6 and 7, until that read, and when the status did not carry the flag.",
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "x-ros-name": "remote_access_enabled"
+        },
+        "rmmp": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/RmmpInfo"
+            }
+          ],
+          "x-ros-name": "rmmp"
+        },
+        "via": {
+          "description": "`poll` while the daemon is reading at least one part of the status on this link; null while it reads none (the link is down, degraded or on the wrong controller, the generation is not known, or `problem` is set).",
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "poll",
+            null
+          ],
+          "x-ros-name": "via"
+        },
+        "problem": {
+          "description": "Why no part of the status is read on this controller (a status the client cannot read, such as RobotWare 8 write access with a client older than 1.4.0; a controller that reported no usable RobotWare version); null otherwise.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-ros-name": "problem"
+        },
+        "asOf": {
+          "description": "The oldest `asOf` of its parts (each lock; RMMP unless the controller does not offer it): every part is at least this current. null while a part has not been read and understood on this connection.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "x-ros-name": "as_of"
+        }
+      },
+      "required": [
+        "generation",
+        "model",
+        "locks",
+        "remoteAccessEnabled",
+        "rmmp",
+        "via",
+        "problem",
+        "asOf"
+      ],
+      "additionalProperties": false
+    },
+    "CapabilityId": {
+      "description": "What a capability entry is about. `status-push`: controller status and\nRAPID execution state are pushed by the controller. `events-push`: new\nevent-log messages are announced by the controller. `event-times`: event\ntimes are corrected to UTC. `io-push`: watched I/O signals arrive by\nsubscription. `io-table`: the signal table lists every signal.\n`joint-limits`: joints carry their unit and limits. `mastership`,\n`write-access`, `rmmp`: that part of `access` can be read. Added in schema 0.13.",
+      "type": "string",
+      "enum": [
+        "status-push",
+        "events-push",
+        "event-times",
+        "io-push",
+        "io-table",
+        "joint-limits",
+        "mastership",
+        "write-access",
+        "rmmp"
+      ]
+    },
+    "CapabilityState": {
+      "description": "`available`: it works on this controller now. `unavailable`: it cannot work\non this connection: not on this controller, not in this daemon release, or\nnot with this client release (`reason` says which). `degraded`: it should work, and it does not at the\nmoment or only in part (the last attempt failed, or the controller's event\nstream is lost and may come back). `unknown`: not determined yet on this\nconnection. Added in schema 0.13.",
+      "type": "string",
+      "enum": [
+        "available",
+        "unavailable",
+        "degraded",
+        "unknown"
+      ]
+    },
+    "Capability": {
+      "description": "One row of a controller's capability table. Added in schema 0.13.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/CapabilityId"
+            }
+          ],
+          "x-ros-name": "id"
+        },
+        "state": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/CapabilityState"
+            }
+          ],
+          "x-ros-name": "state"
+        },
+        "reason": {
+          "description": "Why, in plain words, when the state is not `available`; null when it is.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-ros-name": "reason"
+        }
+      },
+      "required": [
+        "id",
+        "state",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "CapabilitiesGroup": {
+      "description": "Capabilities (added in schema 0.13): what the daemon can read on this\ncontroller and how it arrives. Every row is derived from what the client\nreports (the protocol, and the generation as the client determined it from\nthe reported RobotWare version) and from the outcome of the daemon's own\nreads.",
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "description": "The protocol the link speaks; null while not connected.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Generation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-ros-name": "protocol"
+        },
+        "generation": {
+          "description": "Same value as `access.generation`.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AccessGeneration"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-ros-name": "generation"
+        },
+        "robotWare": {
+          "description": "The RobotWare version exactly as the controller reported it; null until read.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-ros-name": "robot_ware"
+        },
+        "tested": {
+          "description": "The RobotWare major.minor is one this daemon was tested against; null while the version is not known.",
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "x-ros-name": "tested"
+        },
+        "entries": {
+          "description": "One row per `CapabilityId`, in that order; empty for a link on the wrong controller.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Capability"
+          },
+          "x-ros-name": "entries"
+        },
+        "asOf": {
+          "description": "Same meaning as `panel.asOf`.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "x-ros-name": "as_of"
+        }
+      },
+      "required": [
+        "protocol",
+        "generation",
+        "robotWare",
+        "tested",
+        "entries",
+        "asOf"
+      ],
+      "additionalProperties": false
+    },
+    "FreshnessLevel": {
+      "description": "How a controller stands as a whole. `current`: the link is healthy and no\ngroup is stale or failing in part. `degraded`: the link is `stale`, or a\ngroup is stale or failing in part (a group that is only waiting for the\nfirst read of some of its parts does not count). `down`: there is no link\n(`disconnected` or `reconnecting`). `wrong-controller`: the link answers as\na different controller and carries none of its values. Added in schema 0.13.",
+      "type": "string",
+      "enum": [
+        "current",
+        "degraded",
+        "down",
+        "wrong-controller"
+      ]
+    },
+    "GroupFreshnessState": {
+      "description": "How one group stands. `current`: being refreshed, last read good.\n`partial`: some of its parts are current and some are failing or unread.\n`stale`: it holds values that are no longer refreshed (the link is not\nhealthy, or its last read failed); `asOf` says since when. `idle`: nothing\nis watched, by design (no watch lease). `unread`: not read yet on this\nconnection; a read is expected. `unavailable`: it cannot be read on this\ncontroller with this client, and no read is being tried (`reason` says\nwhy). `withheld`: the link is on a different controller, so the group\ncarries nothing. Added in schema 0.13.",
+      "type": "string",
+      "enum": [
+        "current",
+        "partial",
+        "stale",
+        "idle",
+        "unread",
+        "unavailable",
+        "withheld"
+      ]
+    },
+    "FreshGroupName": {
+      "description": "The groups `freshness` reports on. Added in schema 0.13.",
+      "type": "string",
+      "enum": [
+        "identity",
+        "panel",
+        "rapid",
+        "motion",
+        "io",
+        "events",
+        "access"
+      ]
+    },
+    "GroupFreshness": {
+      "description": "One group's freshness. Added in schema 0.13.",
+      "type": "object",
+      "properties": {
+        "group": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/FreshGroupName"
+            }
+          ],
+          "x-ros-name": "group"
+        },
+        "state": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/GroupFreshnessState"
+            }
+          ],
+          "x-ros-name": "state"
+        },
+        "asOf": {
+          "description": "That group's own `asOf` (null when it has none yet).",
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "x-ros-name": "as_of"
+        },
+        "reason": {
+          "description": "Why, in plain words, when the state is not `current`; null when it is. Never holds a time or a counter.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-ros-name": "reason"
+        }
+      },
+      "required": [
+        "group",
+        "state",
+        "asOf",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "FreshnessGroup": {
+      "description": "Freshness (added in schema 0.13): whether what the snapshot shows is\ncurrent, said once for the controller and once per group, so a consumer\nneeds no thresholds of its own. It is worked out from the other groups of\nthe same snapshot and changes only when one of them does.",
+      "type": "object",
+      "properties": {
+        "level": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/FreshnessLevel"
+            }
+          ],
+          "x-ros-name": "level"
+        },
+        "reasons": {
+          "description": "One plain sentence per cause while the level is not `current`; empty when it is.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-ros-name": "reasons"
+        },
+        "groups": {
+          "description": "One entry per `FreshGroupName`, in that order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GroupFreshness"
+          },
+          "x-ros-name": "groups"
+        }
+      },
+      "required": [
+        "level",
+        "reasons",
+        "groups"
       ],
       "additionalProperties": false
     }

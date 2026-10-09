@@ -56,8 +56,9 @@ How a schema property becomes a ROS field (``kind`` is the word the mapping file
   property of the schema, so the mapping file marks the message with ``"header": true``;
 - any other shape stops the generator with an error that names the property.
 
-A field name comes from ``x-ros-name``, or from the rename table of this file. A name
-that is a C, C++ or Python keyword stops the generator. A name that is an IDL keyword,
+A field name comes from ``x-ros-name``, or from the rename table of this file (empty: the
+daemon gives a keyword another ``x-ros-name``). A name that is a C, C++ or Python keyword
+stops the generator. A name that is an IDL keyword,
 or ``min`` / ``max``, is kept and listed under ``warnings`` in the mapping file.
 
 The comments are the schema's descriptions, with two changes so that they speak of the
@@ -96,9 +97,10 @@ PACKAGE = 'abb_rws_ros2_msgs'
 RULE_VERSION = 2
 
 # Field names that replace the schema's x-ros-name: '<Definition>.<property>' -> name.
-RENAMES = {
-    'IdentityGroup.virtual': 'is_virtual',
-}
+# Empty: the schema names every field for ROS itself. A name that will not do (a C, C++ or
+# Python keyword) is renamed in the daemon, with @rosName (IdentityGroup.virtual is
+# is_virtual there since schema 0.13); this table is for a schema that has not caught up.
+RENAMES = {}
 
 SCHEMA_FILE = 'schema/v0.schema.json'
 SOURCE_FILE = 'schema/SOURCE.json'
@@ -324,7 +326,7 @@ class _Builder:
             raise GeneratorError(f'{where}: {ros_name!r} is not a legal field name')
         if ros_name in FORBIDDEN_NAMES:
             raise GeneratorError(f'{where}: the field name {ros_name!r} is a C, C++ or Python '
-                                 'keyword; give it another name in the rename table')
+                                 'keyword; give it another x-ros-name in the daemon (@rosName)')
         if ros_name in IDL_KEYWORDS:
             self.warnings.append({'message': message, 'field': ros_name,
                                   'why': WHY_IDL_KEYWORD})

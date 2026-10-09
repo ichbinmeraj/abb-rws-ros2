@@ -1,11 +1,9 @@
 {
   "schemaId": "urn:abb-rws-daemon:schema:v0",
-  "schemaVersion": "0.12",
-  "definitionsSha256": "fdff40e6e13d87a015b7c9a9b34f7dddae062628cef70baaed3ec6037cdaf7f0",
+  "schemaVersion": "0.13",
+  "definitionsSha256": "9845be6241775a04609e02b74e2eba13af8894c4d3adeca6086f895c023d6efc",
   "package": "abb_rws_ros2_msgs",
-  "renames": {
-    "IdentityGroup.virtual": "is_virtual"
-  },
+  "renames": {},
   "warnings": [
     {
       "message": "LinkGroup",
@@ -102,6 +100,30 @@
           "required": true,
           "nullable": false,
           "msg": "EventsGroup"
+        },
+        {
+          "json": "access",
+          "ros": "access",
+          "kind": "msg",
+          "required": true,
+          "nullable": false,
+          "msg": "AccessGroup"
+        },
+        {
+          "json": "capabilities",
+          "ros": "capabilities",
+          "kind": "msg",
+          "required": true,
+          "nullable": false,
+          "msg": "CapabilitiesGroup"
+        },
+        {
+          "json": "freshness",
+          "ros": "freshness",
+          "kind": "msg",
+          "required": true,
+          "nullable": false,
+          "msg": "FreshnessGroup"
         }
       ]
     },
@@ -273,6 +295,14 @@
           "kind": "time",
           "required": true,
           "nullable": false
+        },
+        {
+          "json": "downSince",
+          "ros": "down_since",
+          "kind": "time",
+          "required": true,
+          "nullable": true,
+          "known": "down_since_known"
         },
         {
           "json": "host",
@@ -1219,6 +1249,426 @@
           "required": true,
           "nullable": true,
           "known": "problem_known"
+        }
+      ]
+    },
+    "AccessGroup": {
+      "fields": [
+        {
+          "json": "generation",
+          "ros": "generation",
+          "kind": "enum",
+          "required": true,
+          "nullable": true,
+          "values": [
+            "rw6",
+            "rw7",
+            "rw8"
+          ]
+        },
+        {
+          "json": "model",
+          "ros": "model",
+          "kind": "enum",
+          "required": true,
+          "nullable": true,
+          "values": [
+            "mastership",
+            "writeaccess"
+          ]
+        },
+        {
+          "json": "locks",
+          "ros": "locks",
+          "kind": "array",
+          "required": true,
+          "nullable": false,
+          "items": {
+            "kind": "msg",
+            "msg": "AccessLockInfo"
+          },
+          "max": 3
+        },
+        {
+          "json": "remoteAccessEnabled",
+          "ros": "remote_access_enabled",
+          "kind": "bool",
+          "required": true,
+          "nullable": true,
+          "tristate": true
+        },
+        {
+          "json": "rmmp",
+          "ros": "rmmp",
+          "kind": "msg",
+          "required": true,
+          "nullable": false,
+          "msg": "RmmpInfo"
+        },
+        {
+          "json": "via",
+          "ros": "via",
+          "kind": "enum",
+          "required": true,
+          "nullable": true,
+          "values": [
+            "poll"
+          ]
+        },
+        {
+          "json": "problem",
+          "ros": "problem",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "problem_known"
+        },
+        {
+          "json": "asOf",
+          "ros": "as_of",
+          "kind": "time",
+          "required": true,
+          "nullable": true,
+          "known": "as_of_known"
+        }
+      ]
+    },
+    "AccessLockInfo": {
+      "fields": [
+        {
+          "json": "lock",
+          "ros": "lock",
+          "kind": "enum",
+          "required": true,
+          "nullable": false,
+          "values": [
+            "cfg",
+            "motion",
+            "rapid",
+            "edit",
+            "writeaccess"
+          ]
+        },
+        {
+          "json": "held",
+          "ros": "held",
+          "kind": "bool",
+          "required": true,
+          "nullable": true,
+          "tristate": true
+        },
+        {
+          "json": "holder",
+          "ros": "holder",
+          "kind": "msg",
+          "required": true,
+          "nullable": true,
+          "msg": "AccessHolder",
+          "optional": true
+        },
+        {
+          "json": "heldByDaemon",
+          "ros": "held_by_daemon",
+          "kind": "bool",
+          "required": true,
+          "nullable": true,
+          "tristate": true
+        },
+        {
+          "json": "reported",
+          "ros": "reported",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "reported_known"
+        },
+        {
+          "json": "asOf",
+          "ros": "as_of",
+          "kind": "time",
+          "required": true,
+          "nullable": true,
+          "known": "as_of_known"
+        },
+        {
+          "json": "error",
+          "ros": "error",
+          "kind": "msg",
+          "required": true,
+          "nullable": true,
+          "msg": "GroupError",
+          "optional": true
+        }
+      ]
+    },
+    "AccessHolder": {
+      "fields": [
+        {
+          "json": "kind",
+          "ros": "kind",
+          "kind": "enum",
+          "required": true,
+          "nullable": false,
+          "values": [
+            "local",
+            "remote",
+            "internal",
+            "station"
+          ]
+        },
+        {
+          "json": "name",
+          "ros": "name",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "name_known"
+        },
+        {
+          "json": "application",
+          "ros": "application",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "application_known"
+        }
+      ]
+    },
+    "RmmpInfo": {
+      "fields": [
+        {
+          "json": "supported",
+          "ros": "supported",
+          "kind": "bool",
+          "required": true,
+          "nullable": true,
+          "tristate": true
+        },
+        {
+          "json": "privilege",
+          "ros": "privilege",
+          "kind": "enum",
+          "required": true,
+          "nullable": true,
+          "values": [
+            "none",
+            "pending modify",
+            "pending exec",
+            "modify",
+            "exec"
+          ]
+        },
+        {
+          "json": "asOf",
+          "ros": "as_of",
+          "kind": "time",
+          "required": true,
+          "nullable": true,
+          "known": "as_of_known"
+        },
+        {
+          "json": "error",
+          "ros": "error",
+          "kind": "msg",
+          "required": true,
+          "nullable": true,
+          "msg": "GroupError",
+          "optional": true
+        }
+      ]
+    },
+    "CapabilitiesGroup": {
+      "fields": [
+        {
+          "json": "protocol",
+          "ros": "protocol",
+          "kind": "enum",
+          "required": true,
+          "nullable": true,
+          "values": [
+            "rws1",
+            "rws2"
+          ]
+        },
+        {
+          "json": "generation",
+          "ros": "generation",
+          "kind": "enum",
+          "required": true,
+          "nullable": true,
+          "values": [
+            "rw6",
+            "rw7",
+            "rw8"
+          ]
+        },
+        {
+          "json": "robotWare",
+          "ros": "robot_ware",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "robot_ware_known"
+        },
+        {
+          "json": "tested",
+          "ros": "tested",
+          "kind": "bool",
+          "required": true,
+          "nullable": true,
+          "tristate": true
+        },
+        {
+          "json": "entries",
+          "ros": "entries",
+          "kind": "array",
+          "required": true,
+          "nullable": false,
+          "items": {
+            "kind": "msg",
+            "msg": "Capability"
+          }
+        },
+        {
+          "json": "asOf",
+          "ros": "as_of",
+          "kind": "time",
+          "required": true,
+          "nullable": true,
+          "known": "as_of_known"
+        }
+      ]
+    },
+    "Capability": {
+      "fields": [
+        {
+          "json": "id",
+          "ros": "id",
+          "kind": "enum",
+          "required": true,
+          "nullable": false,
+          "values": [
+            "status-push",
+            "events-push",
+            "event-times",
+            "io-push",
+            "io-table",
+            "joint-limits",
+            "mastership",
+            "write-access",
+            "rmmp"
+          ]
+        },
+        {
+          "json": "state",
+          "ros": "state",
+          "kind": "enum",
+          "required": true,
+          "nullable": false,
+          "values": [
+            "available",
+            "unavailable",
+            "degraded",
+            "unknown"
+          ]
+        },
+        {
+          "json": "reason",
+          "ros": "reason",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "reason_known"
+        }
+      ]
+    },
+    "FreshnessGroup": {
+      "fields": [
+        {
+          "json": "level",
+          "ros": "level",
+          "kind": "enum",
+          "required": true,
+          "nullable": false,
+          "values": [
+            "current",
+            "degraded",
+            "down",
+            "wrong-controller"
+          ]
+        },
+        {
+          "json": "reasons",
+          "ros": "reasons",
+          "kind": "array",
+          "required": true,
+          "nullable": false,
+          "items": {
+            "kind": "string"
+          }
+        },
+        {
+          "json": "groups",
+          "ros": "groups",
+          "kind": "array",
+          "required": true,
+          "nullable": false,
+          "items": {
+            "kind": "msg",
+            "msg": "GroupFreshness"
+          }
+        }
+      ]
+    },
+    "GroupFreshness": {
+      "fields": [
+        {
+          "json": "group",
+          "ros": "group",
+          "kind": "enum",
+          "required": true,
+          "nullable": false,
+          "values": [
+            "identity",
+            "panel",
+            "rapid",
+            "motion",
+            "io",
+            "events",
+            "access"
+          ]
+        },
+        {
+          "json": "state",
+          "ros": "state",
+          "kind": "enum",
+          "required": true,
+          "nullable": false,
+          "values": [
+            "current",
+            "partial",
+            "stale",
+            "idle",
+            "unread",
+            "unavailable",
+            "withheld"
+          ]
+        },
+        {
+          "json": "asOf",
+          "ros": "as_of",
+          "kind": "time",
+          "required": true,
+          "nullable": true,
+          "known": "as_of_known"
+        },
+        {
+          "json": "reason",
+          "ros": "reason",
+          "kind": "string",
+          "required": true,
+          "nullable": true,
+          "known": "reason_known"
         }
       ]
     }

@@ -1,6 +1,6 @@
 # Generated from the abb-rws-daemon JSON Schema by generate_msgs.py. Do not edit.
 #
-# I/O (slice 5). Signals are watched behind the same lease pattern as motion (`POST
+# I/O. Signals are watched behind the same lease pattern as motion (`POST
 # /v0/controllers/:id/io/watch`): nothing is subscribed or polled until a consumer asks, and a
 # lapsed lease releases the signals again. The watch list is capped (`IO_WATCH_MAX`); the full
 # signal table is served by `GET /v0/controllers/:id/io/signals` (search), not by this group.
