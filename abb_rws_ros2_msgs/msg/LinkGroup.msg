@@ -36,3 +36,18 @@ IdentityCheck identity_check
 # While disconnected: how many reconnects have failed, and when the next one runs.
 # Empty or one element.
 ReconnectInfo[<=1] reconnect
+
+# Where this link's values come from: `live`, a session the daemon holds now; `replay`, a recording
+# a replaying daemon serves, with no controller reached. In replay every other link field
+# (`quality`, `connected`, ...) is as recorded, so a consumer labels the link by this field, never
+# by `quality` alone. A replay of a recording made before schema 0.13 serves its links as recorded,
+# without this field. Added in schema 0.13.
+string mode
+string MODE_LIVE="live"
+string MODE_REPLAY="replay"
+
+# In replay: when the recorded session began (the recording header's `sessionStartedAt`), not moved
+# by the replay's time shift. null live. Added in schema 0.13.
+# Valid only when recorded_at_known is true.
+builtin_interfaces/Time recorded_at
+bool recorded_at_known

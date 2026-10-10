@@ -1,7 +1,7 @@
 {
   "schemaId": "urn:abb-rws-daemon:schema:v0",
   "schemaVersion": "0.13",
-  "definitionsSha256": "9845be6241775a04609e02b74e2eba13af8894c4d3adeca6086f895c023d6efc",
+  "definitionsSha256": "f8855389aee7c5eaddb69f902fa7141c8abbcc4380623f8dbb8295853c80aef8",
   "package": "abb_rws_ros2_msgs",
   "renames": {},
   "warnings": [
@@ -349,6 +349,25 @@
           "nullable": true,
           "msg": "ReconnectInfo",
           "optional": true
+        },
+        {
+          "json": "mode",
+          "ros": "mode",
+          "kind": "enum",
+          "required": true,
+          "nullable": false,
+          "values": [
+            "live",
+            "replay"
+          ]
+        },
+        {
+          "json": "recordedAt",
+          "ros": "recorded_at",
+          "kind": "time",
+          "required": true,
+          "nullable": true,
+          "known": "recorded_at_known"
         }
       ]
     },

@@ -486,6 +486,18 @@ def test_an_enum_value_the_mapping_does_not_list_is_passed_on(converter):
     assert listed.quality == type(listed).QUALITY_POLLING
 
 
+def test_a_replayed_link_says_so_and_when_it_was_recorded(converter):
+    live = converter.to_msg('LinkGroup', frames.link_group())
+    assert (live.mode, live.recorded_at_known) == (type(live).MODE_LIVE, False)
+    data = frames.link_group(mode='replay', recorded_at=frames.iso(-3600))
+    assert frames.schema_errors('LinkGroup', data) == []
+    replayed = converter.to_msg('LinkGroup', data)
+    assert replayed.mode == type(replayed).MODE_REPLAY
+    assert replayed.quality == type(replayed).QUALITY_LIVE
+    assert (replayed.recorded_at.sec, replayed.recorded_at_known) == (T0_SEC - 3600, True)
+    assert _back('LinkGroup', replayed) == data
+
+
 def test_a_time_with_a_known_flag(converter):
     message = converter.to_msg('PanelGroup', frames.panel_group(as_of=frames.iso(2.125)))
     assert (message.as_of.sec, message.as_of.nanosec, message.as_of_known) == (

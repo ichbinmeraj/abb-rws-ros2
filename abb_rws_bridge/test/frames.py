@@ -141,12 +141,13 @@ def identity_group(*, controller_name='Test_Controller', controller_id='TEST-000
 def link_group(*, connected=True, quality='live', quality_reason='events streaming',
                since=T0, host='127.0.0.1', port=5466, use_https=True, subscriptions=True,
                identity_status='confirmed', expected=SYS_ID, actual=SYS_ID, reconnect=None,
-               down_since=None):
+               down_since=None, mode='live', recorded_at=None):
     """
     Return one LinkGroup: by default a healthy link to the controller that was added.
 
     reconnect is None or a ReconnectInfo, {'failures': 2, 'nextAttemptAt': iso(5)}.
     down_since is None while the link is healthy, else when it last was.
+    mode is 'live', or 'replay' with recorded_at (when the recorded session began).
     """
     return {
         'connected': connected, 'quality': quality, 'qualityReason': quality_reason,
@@ -154,6 +155,7 @@ def link_group(*, connected=True, quality='live', quality_reason='events streami
         'subscriptions': {'active': subscriptions},
         'identityCheck': {'status': identity_status, 'expected': expected, 'actual': actual},
         'reconnect': reconnect, 'downSince': down_since,
+        'mode': mode, 'recordedAt': recorded_at,
     }
 
 

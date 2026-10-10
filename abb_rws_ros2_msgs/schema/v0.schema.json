@@ -489,6 +489,24 @@
             }
           ],
           "x-ros-name": "reconnect"
+        },
+        "mode": {
+          "description": "Where this link's values come from: `live`, a session the daemon holds\nnow; `replay`, a recording a replaying daemon serves, with no controller\nreached. In replay every other link field (`quality`, `connected`, ...)\nis as recorded, so a consumer labels the link by this field, never by\n`quality` alone. A replay of a recording made before schema 0.13 serves\nits links as recorded, without this field. Added in schema 0.13.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/DaemonMode"
+            }
+          ],
+          "x-ros-name": "mode"
+        },
+        "recordedAt": {
+          "description": "In replay: when the recorded session began (the recording header's\n`sessionStartedAt`), not moved by the replay's time shift. null live.\nAdded in schema 0.13.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "x-ros-name": "recorded_at"
         }
       },
       "required": [
@@ -502,7 +520,9 @@
         "useHttps",
         "subscriptions",
         "identityCheck",
-        "reconnect"
+        "reconnect",
+        "mode",
+        "recordedAt"
       ],
       "additionalProperties": false
     },
