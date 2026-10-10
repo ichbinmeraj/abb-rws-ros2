@@ -623,7 +623,7 @@ come from is not final, so the messages may change until the first release.
   generated messages. All test data is written by hand. These tests do not show that the
   stand-in behaves like the daemon.
 - **Against a running daemon, replaying a recording** (abb-rws-daemon 0.1.0-dev built from
-  source with `--allowed-hosts`, schema 0.12; the bridge in this repository's image under
+  source with `--allowed-hosts`, schema 0.13; the bridge in this repository's image under
   Docker Desktop on Windows, reaching the daemon as `host.docker.internal`): the daemon
   client alone (health, a wrong token refused, a snapshot and every frame, controller list
   and lease answer valid against the schema, one lease id kept over renewals and
