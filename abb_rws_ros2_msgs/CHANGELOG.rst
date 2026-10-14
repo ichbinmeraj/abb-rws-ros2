@@ -2,8 +2,8 @@
 Changelog for package abb_rws_ros2_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.0 (2026-10-22)
+-------------------
 * Messages generated from the abb-rws-daemon JSON Schema (version 0.13):
   ``ControllerSnapshot`` and the 32 messages it refers to, with the access,
   capabilities and freshness groups, ``LinkGroup.down_since``, and
