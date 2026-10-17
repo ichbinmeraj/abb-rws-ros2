@@ -1,7 +1,7 @@
 {
   "schemaId": "urn:abb-rws-daemon:schema:v0",
   "schemaVersion": "0.13",
-  "definitionsSha256": "f8855389aee7c5eaddb69f902fa7141c8abbcc4380623f8dbb8295853c80aef8",
+  "definitionsSha256": "ab9de67569f9fb8b07f18322c21ea071f9eadd789666b78b4786b7f13e273a84",
   "package": "abb_rws_ros2_msgs",
   "renames": {},
   "warnings": [

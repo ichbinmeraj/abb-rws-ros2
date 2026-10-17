@@ -1,5 +1,8 @@
 # Generated from the abb-rws-daemon JSON Schema by generate_msgs.py. Do not edit.
 
+# The daemon holds a session the controller has answered on: true while `quality` is `live`,
+# `polling` or `stale`; false while a session is being made or remade (`reconnecting`) and while
+# there is none.
 bool connected
 
 string quality
