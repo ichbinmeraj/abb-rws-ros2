@@ -702,8 +702,8 @@ test ran: read the summary line.
 - [abb-rws-daemon](https://github.com/ichbinmeraj/abb-rws-daemon): the local daemon this bridge reads
 - [abb-rws-client](https://github.com/ichbinmeraj/abb-rws-client): TypeScript RWS client tested on RobotWare 6, 7 and 8
 - [abb-rws-vscode](https://github.com/ichbinmeraj/abb-rws-vscode): RAPID Live, VS Code extension for ABB controllers
-- [abb-rws-conformance](https://github.com/ichbinmeraj/abb-rws-conformance): conformance suite and compatibility matrix (planned)
-- [abb-rws-mcp](https://github.com/ichbinmeraj/abb-rws-mcp): Model Context Protocol server (planned)
+- abb-rws-conformance: conformance suite and compatibility matrix (planned)
+- abb-rws-mcp: Model Context Protocol server (planned)
 
 ## Licence
 
