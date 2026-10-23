@@ -172,7 +172,8 @@ to nothing else. The daemon's README says how to build it, start it and add cont
   [The token](#the-token)).
 - The daemon listens on 127.0.0.1 only, so the bridge runs on the same machine as the
   daemon, or in a container on that machine.
-- The daemon is in early development and read-only too, and is built from source.
+- The daemon is in early development and read-only too. It installs from npm
+  (`abb-rws-daemon@0.1.0`) or builds from source.
 
 ## What a running bridge causes
 
@@ -703,7 +704,7 @@ test ran: read the summary line.
 - [abb-rws-client](https://github.com/ichbinmeraj/abb-rws-client): TypeScript RWS client tested on RobotWare 6, 7 and 8
 - [abb-rws-vscode](https://github.com/ichbinmeraj/abb-rws-vscode): RAPID Live, VS Code extension for ABB controllers
 - abb-rws-conformance: conformance suite and compatibility matrix (planned)
-- abb-rws-mcp: Model Context Protocol server (planned)
+- [abb-rws-mcp](https://github.com/ichbinmeraj/abb-rws-mcp): read-only Model Context Protocol server over the same daemon
 
 ## Licence
 
