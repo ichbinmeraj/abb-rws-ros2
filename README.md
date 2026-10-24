@@ -617,6 +617,10 @@ come from is not final, so the messages may change until the first release.
 
 ## Tested with
 
+Every controller below is a RobotStudio virtual controller: RobotWare 6.16.03 with RWS 1.0,
+and RobotWare 7.21.0, 7.21.4, 8.1.1 and 8.2.1 with RWS 2.0. The bridge has not run against
+a real controller yet.
+
 - **Automated tests**, run with colcon in a container, without network, without a daemon
   and without a controller: unit tests of the conversion, naming, state and diagnostics
   code; tests of the daemon client against a stand-in daemon written for the tests; node
@@ -661,9 +665,49 @@ come from is not final, so the messages may change until the first release.
   `stream-stalled` and was connected again within a second. Once the load had dropped, a
   four-minute comparison of the daemon's controller list and stream, by the bridge's own
   rule, found no difference that lasted longer than 0.6 s.
+- **A full check of the bridge's behaviour, 2026-10-13** (abb-rws-daemon 0.1.0-dev built
+  from source with `--allowed-hosts host.docker.internal`, schema 0.13; the image built by
+  `docker compose up --build` under Docker Desktop on Windows; RobotWare 6.16.03 with RWS
+  1.0, RobotWare 7.21.4 and 8.2.1 with RWS 2.0, each on an IRB 1600; nothing was written to
+  a controller): 14 checks, all passed.
+  - The image built, and the node connected and published. In the development image the
+    colcon tests passed (2910 tests, 0 failures, 6 skipped), and the generated messages
+    matched the vendored schema.
+  - Each controller had its namespace with `controller_snapshot` and `joint_states`, and
+    `/diagnostics` had one OK status for the daemon and one per controller, at 1 Hz.
+  - The 7.21.4 snapshot carried all ten groups, `is_virtual` set and the RobotWare version,
+    and its `joint_states` named `ROB_1_J1` to `ROB_1_J6` in radians (J5 at 0.5236 rad, 30
+    degrees). Over 60 s, `joint_states` arrived at about 2 Hz from each controller. No joint
+    moved during the run, so a moving joint was not followed.
+  - I/O signals from a mounted parameters file: three digital signals as `std_msgs/Bool`
+    and a group signal as `std_msgs/UInt32`, 1 Hz each, with the daemon's values. These
+    controllers have no analog signal, so `std_msgs/Float64` was not exercised.
+  - `controller:=<id>` bridged that one controller and no other.
+  - The daemon started without `--allowed-hosts`: `/diagnostics` read `host-refused`, and
+    the bridge went no further than the health request, which carries no token.
+  - A replay of a 60 s recording made while the bridge ran: refused by default; with
+    `allow_replay:=true`, every topic under `replay/` and none on the live names, every
+    status starting with `REPLAY: recorded`, `link.mode` replay and `recorded_at` the
+    recording's start in every snapshot.
+  - The daemon shut down while the bridge ran: no data message after that on any topic,
+    and `/diagnostics` went on at 1 Hz with the daemon unreachable.
+  - `docker compose stop` took 1.1 s, and the node finished cleanly. On the daemon, the I/O
+    watch set was empty within a second, and the motion watch and the `io.watching` flag
+    ended within 15 s, when their watch leases lapsed.
+- **On the 0.1.0 daemon, 2026-10-22** (abb-rws-daemon 0.1.0 built from source, the same
+  code as its npm package on an earlier abb-rws-client, with `--allowed-hosts
+  host.docker.internal`; the bridge image rebuilt from the code this README describes,
+  under Docker Desktop on Windows; nothing was written to a controller): RobotWare 7.21.4
+  and 8.2.1 together, then RobotWare 6.16.03 on its own after that virtual controller had
+  been restarted. On all three, the bridge connected and published `controller_snapshot`
+  and `joint_states` with the joints the controller showed, and `/diagnostics` showed no
+  reconnect, the link live and the controller's identity confirmed. In the first run it
+  also showed the daemon live and schema 0.13 on both ends; the 8.2.1 snapshot named
+  RobotWare 8.2.1 and a virtual controller, and `joint_states` arrived at about 1.8 Hz (J5
+  at 30 degrees). In both runs the node stopped cleanly within 1 s.
 - **ROS 2:** Jazzy on Ubuntu 24.04 only so far. Lyrical and Rolling are in the CI matrix
   and are allowed to fail there; nothing was tried on them locally.
-- **Real hardware:** none.
+- **Real hardware:** none yet. Every run above was on RobotStudio virtual controllers.
 
 ## Development
 
