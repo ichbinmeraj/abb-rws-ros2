@@ -694,17 +694,22 @@ a real controller yet.
   - `docker compose stop` took 1.1 s, and the node finished cleanly. On the daemon, the I/O
     watch set was empty within a second, and the motion watch and the `io.watching` flag
     ended within 15 s, when their watch leases lapsed.
-- **On the 0.1.0 daemon, 2026-10-22** (abb-rws-daemon 0.1.0 built from source, the same
-  code as its npm package on an earlier abb-rws-client, with `--allowed-hosts
-  host.docker.internal`; the bridge image rebuilt from the code this README describes,
-  under Docker Desktop on Windows; nothing was written to a controller): RobotWare 7.21.4
-  and 8.2.1 together, then RobotWare 6.16.03 on its own after that virtual controller had
-  been restarted. On all three, the bridge connected and published `controller_snapshot`
-  and `joint_states` with the joints the controller showed, and `/diagnostics` showed no
+- **On a pre-release build of the 0.1.0 daemon, 2026-10-22** (abb-rws-daemon 0.1.0 built
+  from source before its last change, schema 0.13, on an earlier abb-rws-client, with
+  `--allowed-hosts host.docker.internal`; the bridge image rebuilt from the code this
+  README describes, under Docker Desktop on Windows; nothing was written to a
+  controller): RobotWare 7.21.4 and 8.2.1 together, then RobotWare 6.16.03 on its own
+  after that virtual controller had been restarted. On all three, the bridge connected and
+  published `controller_snapshot` and `joint_states` with the joints the controller
+  showed, and `/diagnostics` showed no
   reconnect, the link live and the controller's identity confirmed. In the first run it
   also showed the daemon live and schema 0.13 on both ends; the 8.2.1 snapshot named
   RobotWare 8.2.1 and a virtual controller, and `joint_states` arrived at about 1.8 Hz (J5
   at 30 degrees). In both runs the node stopped cleanly within 1 s.
+- **The released abb-rws-daemon 0.1.0** serves schema 0.14, which adds whether a lock
+  holder is the FlexPendant. The bridge has not run on it yet. With it, the daemon status
+  in `/diagnostics` is a warning that the daemon schema is newer than the messages (0.13),
+  and that field is left out.
 - **ROS 2:** Jazzy on Ubuntu 24.04 only so far. Lyrical and Rolling are in the CI matrix
   and are allowed to fail there; nothing was tried on them locally.
 - **Real hardware:** none yet. Every run above was on RobotStudio virtual controllers.
