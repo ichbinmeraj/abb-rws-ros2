@@ -160,7 +160,7 @@ class FleetState:
         Start empty.
 
         messages_schema is the schema version the messages were generated from
-        (``Converter.schema_version``, such as ``'0.13'``). A snapshot of another major line, or
+        (``Converter.schema_version``, such as ``'0.14'``). A snapshot of another major line, or
         of a lower minor, is refused. Raises ValueError when it is not ``<major>.<minor>``.
 
         first_sight_max_age_s is for a ``motion.asOf`` that has no stamp before it: the

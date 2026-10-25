@@ -164,7 +164,7 @@ cell, log it or supervise it. It is not enough to control anything.
 The bridge speaks to [abb-rws-daemon](https://github.com/ichbinmeraj/abb-rws-daemon) and
 to nothing else. The daemon's README says how to build it, start it and add controllers.
 
-- The daemon must serve snapshot schema 0.13 or later. An older one is refused: nothing is
+- The daemon must serve snapshot schema 0.14 or later. An older one is refused: nothing is
   published and `/diagnostics` says so. A newer minor version is accepted with a warning,
   and what the messages do not know is ignored.
 - The bridge holds no controller credentials. User names and passwords stay with the
@@ -587,7 +587,7 @@ recording because a parameter was flipped. The bridge checks the daemon's mode a
 Every message is generated from the daemon's JSON Schema; none is written by hand.
 
 - `abb_rws_ros2_msgs/schema/v0.schema.json` is a copy of the daemon's schema file, byte
-  for byte (version 0.13). `schema/SOURCE.json` records its version and hashes.
+  for byte (version 0.14). `schema/SOURCE.json` records its version and hashes.
 - `abb_rws_ros2_msgs/scripts/generate_msgs.py` (Python standard library only) writes the
   `.msg` files, the list CMake builds from, and `schema/v0.mapping.json`, which says how
   each JSON property maps to a message field. The bridge converts from that file, so the
@@ -696,20 +696,24 @@ a real controller yet.
     ended within 15 s, when their watch leases lapsed.
 - **On a pre-release build of the 0.1.0 daemon, 2026-10-22** (abb-rws-daemon 0.1.0 built
   from source before its last change, schema 0.13, on an earlier abb-rws-client, with
-  `--allowed-hosts host.docker.internal`; the bridge image rebuilt from the code this
-  README describes, under Docker Desktop on Windows; nothing was written to a
-  controller): RobotWare 7.21.4 and 8.2.1 together, then RobotWare 6.16.03 on its own
-  after that virtual controller had been restarted. On all three, the bridge connected and
-  published `controller_snapshot` and `joint_states` with the joints the controller
-  showed, and `/diagnostics` showed no
-  reconnect, the link live and the controller's identity confirmed. In the first run it
-  also showed the daemon live and schema 0.13 on both ends; the 8.2.1 snapshot named
-  RobotWare 8.2.1 and a virtual controller, and `joint_states` arrived at about 1.8 Hz (J5
-  at 30 degrees). In both runs the node stopped cleanly within 1 s.
-- **The released abb-rws-daemon 0.1.0** serves schema 0.14, which adds whether a lock
-  holder is the FlexPendant. The bridge has not run on it yet. With it, the daemon status
-  in `/diagnostics` is a warning that the daemon schema is newer than the messages (0.13),
-  and that field is left out.
+  `--allowed-hosts host.docker.internal`; the bridge image rebuilt from the code of that
+  day, with messages from schema 0.13, under Docker Desktop on Windows; nothing was
+  written to a controller): RobotWare 7.21.4 and 8.2.1 together, then RobotWare 6.16.03 on
+  its own after that virtual controller had been restarted. On all three, the bridge
+  connected and published `controller_snapshot` and `joint_states` with the joints the
+  controller showed, and `/diagnostics` showed no reconnect, the link live and the
+  controller's identity confirmed. In the first run it also showed the daemon live and
+  schema 0.13 on both ends; the 8.2.1 snapshot named RobotWare 8.2.1 and a virtual
+  controller, and `joint_states` arrived at about 1.8 Hz (J5 at 30 degrees). In both runs
+  the node stopped cleanly within 1 s.
+- **The released abb-rws-daemon 0.1.0, 2026-10-25** (schema 0.14, which adds whether a
+  lock holder is the FlexPendant; the messages come from the same schema; the bridge in
+  this repository's image under Docker Desktop on Windows; nothing was written to a
+  controller): RobotWare 6.16.03, 7.21.4 and 8.2.1. On all three, the bridge connected and
+  published `controller_snapshot` and `joint_states`, and `/diagnostics` showed the daemon
+  status OK with schema 0.14 on both ends. In the development image the colcon tests
+  passed (2919 tests, 0 failures, 6 skipped), and the generated messages
+  matched the vendored schema.
 - **ROS 2:** Jazzy on Ubuntu 24.04 only so far. Lyrical and Rolling are in the CI matrix
   and are allowed to fail there; nothing was tried on them locally.
 - **Real hardware:** none yet. Every run above was on RobotStudio virtual controllers.

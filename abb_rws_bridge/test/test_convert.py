@@ -498,6 +498,27 @@ def test_a_replayed_link_says_so_and_when_it_was_recorded(converter):
     assert _back('LinkGroup', replayed) == data
 
 
+@pytest.mark.parametrize('holder, reported, constant', [
+    (frames.access_holder(), 'local', 'FLEX_PENDANT_TRUE'),
+    (frames.access_holder('station', name='FlexPendant', application=None), None,
+     'FLEX_PENDANT_TRUE'),
+    (frames.access_holder('station', name='TPU', application=None, flex_pendant=False), None,
+     'FLEX_PENDANT_FALSE'),
+    (frames.access_holder('remote', application='RobotStudio', flex_pendant=False), 'remote',
+     'FLEX_PENDANT_FALSE'),
+    (frames.access_holder(application=None, flex_pendant=None), 'local',
+     'FLEX_PENDANT_UNKNOWN'),
+])
+def test_a_lock_holder_says_whether_it_is_the_flex_pendant(converter, holder, reported,
+                                                           constant):
+    data = frames.access_lock(held=True, holder=holder, reported=reported)
+    assert frames.schema_errors('AccessLockInfo', data) == []
+    message = converter.to_msg('AccessLockInfo', data)
+    held_by = message.holder[0]
+    assert held_by.flex_pendant == getattr(type(held_by), constant)
+    assert _back('AccessLockInfo', message) == data
+
+
 def test_a_time_with_a_known_flag(converter):
     message = converter.to_msg('PanelGroup', frames.panel_group(as_of=frames.iso(2.125)))
     assert (message.as_of.sec, message.as_of.nanosec, message.as_of_known) == (

@@ -1,7 +1,7 @@
 {
   "schemaId": "urn:abb-rws-daemon:schema:v0",
-  "schemaVersion": "0.13",
-  "definitionsSha256": "ab9de67569f9fb8b07f18322c21ea071f9eadd789666b78b4786b7f13e273a84",
+  "schemaVersion": "0.14",
+  "definitionsSha256": "b50a3b9fa980f2ea0f48d0fd62251df9e226fb3e4ae57eed05d97f6b8e2deae3",
   "package": "abb_rws_ros2_msgs",
   "renames": {},
   "warnings": [
@@ -1450,6 +1450,14 @@
           "required": true,
           "nullable": true,
           "known": "application_known"
+        },
+        {
+          "json": "flexPendant",
+          "ros": "flex_pendant",
+          "kind": "bool",
+          "required": true,
+          "nullable": true,
+          "tristate": true
         }
       ]
     },

@@ -1,9 +1,9 @@
 {
   "source": "abb-rws-daemon, schema/v0.schema.json",
   "schemaId": "urn:abb-rws-daemon:schema:v0",
-  "schemaVersion": "0.13",
-  "schemaSha256": "4d0c7b9a96f60f758a7c5194f33f0530faad30ee651a7309d721de8c69d23d78",
-  "definitionsSha256": "ab9de67569f9fb8b07f18322c21ea071f9eadd789666b78b4786b7f13e273a84",
+  "schemaVersion": "0.14",
+  "schemaSha256": "670d7b6d97d3a6f7413a18cbf9497df13c7c7247b3c0a21b00eb05ad53ec8c65",
+  "definitionsSha256": "b50a3b9fa980f2ea0f48d0fd62251df9e226fb3e4ae57eed05d97f6b8e2deae3",
   "messages": 33,
   "renames": {}
 }

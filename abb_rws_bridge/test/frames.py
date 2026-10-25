@@ -32,7 +32,7 @@ import json
 from pathlib import Path
 import re
 
-SCHEMA_VERSION = '0.13'
+SCHEMA_VERSION = '0.14'
 # The minors either side of it, for a daemon newer or older than the messages.
 NEWER_SCHEMA_VERSION = f'0.{int(SCHEMA_VERSION.split(".")[1]) + 1}'
 OLDER_SCHEMA_VERSION = f'0.{int(SCHEMA_VERSION.split(".")[1]) - 1}'
@@ -247,6 +247,12 @@ def events_group(recent=None, *, feed='feed-1', last_seq=None, via='subscription
         clock = {'offsetMs': 0, 'measuredAt': as_of, 'problem': None}
     return {'feed': feed, 'lastSeq': last_seq, 'recent': recent, 'via': via, 'clock': clock,
             'asOf': as_of, 'error': error}
+
+
+def access_holder(kind='local', *, name=None, application='TPU', flex_pendant=True):
+    """Return one AccessHolder: by default the FlexPendant as RobotWare 7 names it."""
+    return {'kind': kind, 'name': name, 'application': application,
+            'flexPendant': flex_pendant}
 
 
 def access_lock(lock='motion', *, held=False, holder=None, held_by_daemon=False,

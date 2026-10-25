@@ -2,12 +2,13 @@
 Changelog for package abb_rws_ros2_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.1.0 (2026-10-22)
+0.1.0 (2026-10-25)
 -------------------
-* Messages generated from the abb-rws-daemon JSON Schema (version 0.13):
+* Messages generated from the abb-rws-daemon JSON Schema (version 0.14):
   ``ControllerSnapshot`` and the 32 messages it refers to, with the access,
-  capabilities and freshness groups, ``LinkGroup.down_since``, and
-  ``LinkGroup.mode`` (``live`` or ``replay``) with ``LinkGroup.recorded_at``.
+  capabilities and freshness groups, ``LinkGroup.down_since``,
+  ``LinkGroup.mode`` (``live`` or ``replay``) with ``LinkGroup.recorded_at``, and
+  ``AccessHolder.flex_pendant`` (whether a lock holder is the FlexPendant).
 * Field names are the schema's ``x-ros-name``: the generator renames nothing.
   ``IdentityGroup.is_virtual`` is named so by the daemon's schema.
 * The generator ``scripts/generate_msgs.py``, the vendored schema and the
