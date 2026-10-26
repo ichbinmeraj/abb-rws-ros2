@@ -245,6 +245,7 @@ def bench(ros_context, collector, ros_namespace, tmp_path):
 
 
 class Collected(logging.Handler):
+
     def __init__(self):
         super().__init__(logging.DEBUG)
         self.records = []
@@ -462,7 +463,10 @@ def test_scenario_3_edge_controller_units_and_joints_left_out(bench):
     for position, value in zip(state.position, expected):
         assert abs(position - value) < 1e-12
 
-    status = bench.controller_status('edge-1', lambda found: 'left out' in found.message)
+    # A slow machine can miss the 0.5 s confirmation window first, and the status then
+    # reads STALE; the joints left out are a warning once the joints are current.
+    status = bench.controller_status(
+        'edge-1', lambda found: 'left out' in found.message and found.level != STALE)
     assert status.level == WARN
     left_out = values_of(status)['joints left out']
     for text in ('ROB_1/J3: no-value', 'ROB_1/J4: unit-unknown', 'STN_1/J1: unit-error'):

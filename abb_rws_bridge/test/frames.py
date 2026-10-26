@@ -306,7 +306,7 @@ def freshness_group(states=None, *, level='current', reasons=(), as_of=T0):
     By default what goes with the default controller(): every group current, except
     I/O, which is idle (nothing watched).
     """
-    by_group = {group: 'current' for group in FRESH_GROUPS}
+    by_group = dict.fromkeys(FRESH_GROUPS, 'current')
     by_group['io'] = 'idle'
     by_group.update(states or {})
     return {
