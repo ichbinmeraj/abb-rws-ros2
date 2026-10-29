@@ -765,4 +765,4 @@ Apache-2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute thi
 
 ## Disclaimer
 
-Independent open-source project by [Meraj Safari](https://github.com/ichbinmeraj). Not affiliated with, endorsed by or sponsored by ABB. ABB, RobotWare, OmniCore, IRC5 and RobotStudio are trademarks of ABB. See [TRADEMARKS.md](TRADEMARKS.md).
+Independent open-source project by [Meraj Safari](https://github.com/ichbinmeraj). ABB is a trademark of ABB Asea Brown Boveri Ltd. RobotWare, OmniCore, IRC5 and RobotStudio are trademarks of their respective owners. Not affiliated with, endorsed by, sponsored by or supported by ABB, ABB Robotics or any later owner of these products. See [TRADEMARKS.md](TRADEMARKS.md).
